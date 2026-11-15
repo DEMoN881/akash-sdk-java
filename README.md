@@ -6,6 +6,16 @@
 > 
 > **Vibecoded** — a 1:1 logic port of the official(According to Claude) [Akash Go SDK](https://github.com/akash-network/akash-api) (`go/node/client/v1beta2`).
 
+## Example
+
+[JAkash Desktop](https://github.com/DEMoN881/JAkash-Desktop) is a desktop and CLI built on this SDK. It deploys nginx to mainnet and takes the container URL from the provider `uris` array.
+
+```bash
+git clone https://github.com/DEMoN881/JAkash-Desktop.git
+cd JAkash-Desktop
+./gradlew run --args=ui
+```
+
 ## Features
 
 - **Full protobuf transaction signing** — SignDoc serialization, secp256k1 signing, TxRaw broadcast
