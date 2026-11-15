@@ -4,7 +4,7 @@
 
 > **Unofficial community Java SDK for [Akash Network](https://akash.network/).**
 > 
-> **Vibecoded** — a 1:1 logic port of the official [Akash Go SDK](https://github.com/akash-network/akash-api) (`go/node/client/v1beta2`).
+> **Vibecoded** — a 1:1 logic port of the official(According to Claude) [Akash Go SDK](https://github.com/akash-network/akash-api) (`go/node/client/v1beta2`).
 
 ## Features
 
