@@ -27,13 +27,13 @@ cd JAkash-Desktop
 - **Keyring** — Encrypted file-based (AES-256-GCM) and in-memory key storage
 - **Serial TX broadcaster** — Queue with automatic sequence sync and retry on mismatch
 
-## С чего начать
+## Quick start
 
-В `v0.3.0` есть `SdlBuilder`. Им описываешь контейнер на Java, либо открываешь уже готовый YAML и меняешь в нём одно поле. На выходе тот же SDL, который читает `SdlParser`.
+`v0.3.0` adds `SdlBuilder`. Describe a container in Java, or open an existing YAML file and change one field. The result is the same SDL that `SdlParser` reads.
 
-Билдер не отправляет транзакцию и не создаёт деплой. Он собирает описание. Дальше `Sdl` можно отдать в `ManifestBuilder.fromSdl`.
+The builder does not broadcast a transaction or create a deployment. It builds the description. Pass the `Sdl` to `ManifestBuilder.fromSdl` when you need a provider manifest.
 
-### Подключить
+### Install
 
 Maven:
 
@@ -64,21 +64,21 @@ dependencies {
 }
 ```
 
-JitPack собирает тег несколько минут. Если `v0.3.0` ещё не резолвится, подожди и обнови зависимости.
+JitPack builds a new tag for a few minutes. If `v0.3.0` does not resolve yet, refresh the dependencies.
 
-### Один контейнер
+### One container
 
-Слова, которые встречаются ниже:
+The names in the example:
 
-- `service("web")` — один контейнер. `"web"` его имя.
-- `image` — образ.
-- `expose(80)` — открыть порт 80 наружу по TCP. Такой порт провайдер потом отдаёт в `uris`.
-- `compute("0.1", "128Mi", "128Mi")` — cpu, память, диск. Пиши так же, как в YAML.
-- `group("test")` — имя группы. Это имя уходит на чейн. Одна группа = один заказ и один счёт.
-- `price("web", "uact", "50000")` — потолок цены сервиса `web` в этой группе. Сумма строкой. На mainnet цена группы в `uact`.
-- `end()` — вернуться к билдеру.
-- `build()` — записать YAML, прочитать его парсером и проверить, что есть образ и хотя бы одна группа.
-- `yaml()` — тот же текст, если его надо сохранить в файл. Проверку сам не делает.
+- `service("web")` — one container. `"web"` is its name.
+- `image` — the container image.
+- `expose(80)` — publish port 80 as global TCP. That port is what the provider later returns in `uris`.
+- `compute("0.1", "128Mi", "128Mi")` — cpu, memory, and disk. Use the same strings you would write in YAML.
+- `group("test")` — the group name stored on chain. One group is one order and one bill.
+- `price("web", "uact", "50000")` — the price ceiling for service `web` in that group. The amount is a string. On mainnet the group price is `uact`.
+- `end()` — return to the builder.
+- `build()` — write the YAML, parse it, and check that an image and at least one group are present.
+- `yaml()` — the same text, when you want to save a file. It does not validate.
 
 ```java
 import network.akash.sdk.sdl.Sdl;
@@ -98,17 +98,17 @@ Sdl sdl = SdlBuilder.create()
 String yaml = SdlBuilder.from(sdl).yaml();
 ```
 
-После `build()`:
+After `build()`:
 
-- `sdl.services().get("web").image()` — `"nginx:1.27-alpine"`
-- `sdl.groups().get(0).name()` — `"test"`
-- `sdl.placements().get("test").pricing().get("web").amount()` — `"50000"`
+- `sdl.services().get("web").image()` is `"nginx:1.27-alpine"`
+- `sdl.groups().get(0).name()` is `"test"`
+- `sdl.placements().get("test").pricing().get("web").amount()` is `"50000"`
 
-Повторный `service("web")` или `group("test")` не создаёт вторую запись. Он открывает ту же и дописывает в неё.
+Calling `service("web")` or `group("test")` again does not add a second entry. It opens the same one and adds to it.
 
-### Поменять готовый YAML
+### Change an existing YAML file
 
-`from` оставляет файл как был. Меняется только то, что ты вызвал.
+`from` keeps the rest of the file. Only the calls you make are changed.
 
 ```java
 Sdl updated = SdlBuilder.from(yaml)
@@ -119,11 +119,11 @@ Sdl updated = SdlBuilder.from(yaml)
         .build();
 ```
 
-Группа, цена, cpu и порты из исходного текста остаются. `env("MODE", "prod")` дописывает переменную. Если в файле env был списком `KEY=value`, он тоже сохранится.
+The group, price, cpu, and ports from the source stay. `env("MODE", "prod")` adds a variable. A file that stored env as a `KEY=value` list keeps those entries too.
 
-### Два контейнера в одной группе
+### Two containers in one group
 
-Оба сервиса указываешь в `price` одной и той же группы. Счёт один.
+Put both services in `price` on the same group. They share one bill.
 
 ```java
 Sdl sdl = SdlBuilder.create()
@@ -136,37 +136,37 @@ Sdl sdl = SdlBuilder.create()
         .build();
 ```
 
-Вторая группа с другим именем — это уже второй заказ. `group("app")` и `group("jobs")` дадут две группы.
+A second group with a different name is a second order. `group("app")` and `group("jobs")` produce two groups.
 
-### Методы
+### Methods
 
-На сервисе, до `end()`:
+On a service, before `end()`:
 
-| Метод | Что пишет |
+| Method | Writes |
 |---|---|
-| `image("nginx:1.27-alpine")` | образ |
-| `count(2)` | сколько копий. Если не вызвать, будет 1 |
-| `expose(80)` | порт 80 наружу, TCP |
-| `expose(80, 80, "udp", false)` | свой внешний порт, протокол и флаг global |
-| `compute("0.1", "128Mi", "1Gi")` | cpu, память, диск |
-| `compute("1", "1Gi", "10Gi", "1")` | то же плюс gpu |
-| `env("MODE", "prod")` | переменная окружения |
+| `image("nginx:1.27-alpine")` | the image |
+| `count(2)` | replica count. Omitted means 1 |
+| `expose(80)` | port 80, global TCP |
+| `expose(80, 80, "udp", false)` | external port, protocol, and the global flag |
+| `compute("0.1", "128Mi", "1Gi")` | cpu, memory, and disk |
+| `compute("1", "1Gi", "10Gi", "1")` | the same, plus gpu |
+| `env("MODE", "prod")` | an environment variable |
 | `command("nginx", "-g", "daemon off;")` | command |
 | `args("--port", "80")` | args |
 
-На группе, до `end()`:
+On a group, before `end()`:
 
-| Метод | Что пишет |
+| Method | Writes |
 |---|---|
-| `price("web", "uact", "50000")` | потолок цены этого сервиса |
-| `attribute("region", "us-west")` | требование к провайдеру |
-| `signedBy("akash1...")` | аудитор, которого провайдер должен иметь |
+| `price("web", "uact", "50000")` | the price ceiling for that service |
+| `attribute("region", "us-west")` | a provider requirement |
+| `signedBy("akash1...")` | an auditor the provider must have |
 
-Порт без `global: true` в `uris` не появится. Cpu, память, диск, count и цену на уже открытом деплое билдер не обновляет: это новый деплой. Образ, env, command и args меняются новым манифестом поверх того же деплоя.
+A port without `global: true` does not appear in `uris`. Cpu, memory, disk, count, and price are not updated on an open deployment: those need a new deployment. Image, env, command, and args change by submitting a new manifest on the same deployment.
 
-## Клиент
+## Client
 
-Ниже тот же SDK, которым этот `Sdl` потом уезжает в сеть. Ключ кошелька берётся из мнемоники: `AkashKeyPair.fromMnemonic(mnemonic)`. Для живого деплоя nginx смотри [JAkash Desktop](https://github.com/DEMoN881/JAkash-Desktop).
+The client below is how that `Sdl` goes on chain. A wallet key comes from a mnemonic: `AkashKeyPair.fromMnemonic(mnemonic)`. For a live nginx deploy, see [JAkash Desktop](https://github.com/DEMoN881/JAkash-Desktop).
 
 ### Create a client (REST mode)
 
@@ -204,7 +204,7 @@ var deployments = client.query().deployments(Map.of(
 
 ### Close a deployment
 
-Комиссия транзакции в `uakt`. На закрытие закладывай газ с запасом: 200000 на mainnet уже не хватает.
+The transaction fee is `uakt`. Leave headroom on gas: 200000 is not enough to close a deployment on mainnet.
 
 ```java
 import network.akash.sdk.types.deployment.*;
@@ -218,7 +218,7 @@ var result = client.tx().broadcast(
 );
 ```
 
-### Прочитать готовый файл
+### Read an existing file
 
 ```java
 import network.akash.sdk.sdl.Sdl;
@@ -228,7 +228,7 @@ Sdl sdl = SdlParser.parse(yaml);
 sdl.validate();
 ```
 
-`SdlParser.parse` только читает. Собрать или изменить документ можно через `SdlBuilder` выше.
+`SdlParser.parse` only reads. Build or edit the document with `SdlBuilder` above.
 
 ### Generate mTLS certificate
 
