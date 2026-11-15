@@ -26,6 +26,12 @@ class DecCoinTest {
     }
 
     @Test
+    void protoAmountIsScaledInteger() {
+        assertEquals("1500000000000000000", DecCoin.of("uakt", "1.5").protoAmount());
+        assertEquals("50000000000000000000000", DecCoin.of("uakt", "50000").protoAmount());
+    }
+
+    @Test
     void toStringFormat() {
         DecCoin c = DecCoin.of("uakt", "1.5");
         assertEquals("1.5uakt", c.toString());

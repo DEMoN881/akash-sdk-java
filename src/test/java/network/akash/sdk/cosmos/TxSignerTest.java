@@ -3,6 +3,7 @@ package network.akash.sdk.cosmos;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import cosmos.base.v1beta1.CoinOuterClass;
+import cosmos.tx.v1beta1.TxOuterClass;
 import network.akash.sdk.crypto.AkashKeyPair;
 import network.akash.sdk.types.deployment.DeploymentID;
 import network.akash.sdk.types.deployment.DeploymentMessages;
@@ -17,7 +18,7 @@ class TxSignerTest {
             "e856db0e3c5e0404c0bc7a84e0a3ab483e5e0fb49dfc0c4a7c3b8f1b2f5a0d1e");
 
     @Test
-    void buildAndSignProducesTxRaw() {
+    void buildAndSignProducesTxRaw() throws Exception {
         DeploymentID did = new DeploymentID(KEY_PAIR.getAddress().toBech32(), 1);
         var closeMsg = new DeploymentMessages.MsgCloseDeployment(did);
 
@@ -39,6 +40,12 @@ class TxSignerTest {
 
         assertNotNull(txRaw);
         assertTrue(txRaw.length > 0);
+        TxOuterClass.TxRaw raw = TxOuterClass.TxRaw.parseFrom(txRaw);
+        TxOuterClass.AuthInfo authInfo = TxOuterClass.AuthInfo.parseFrom(raw.getAuthInfoBytes());
+        assertEquals(
+                "/cosmos.crypto.secp256k1.PubKey",
+                authInfo.getSignerInfos(0).getPublicKey().getTypeUrl()
+        );
     }
 
     @Test

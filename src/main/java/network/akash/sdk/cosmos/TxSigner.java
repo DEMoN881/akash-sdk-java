@@ -50,7 +50,10 @@ public final class TxSigner {
                 .build();
 
         TxOuterClass.SignerInfo signerInfo = TxOuterClass.SignerInfo.newBuilder()
-                .setPublicKey(Any.pack(pubKey))
+                .setPublicKey(Any.newBuilder()
+                        .setTypeUrl("/cosmos.crypto.secp256k1.PubKey")
+                        .setValue(pubKey.toByteString())
+                        .build())
                 .setModeInfo(modeInfo)
                 .setSequence(sequence)
                 .build();

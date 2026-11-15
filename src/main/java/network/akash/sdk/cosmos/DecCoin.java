@@ -26,6 +26,17 @@ public record DecCoin(String denom, BigDecimal amount) {
         return amount.signum() == 0;
     }
 
+    /**
+     * Protobuf encoding of a Cosmos LegacyDec: an integer scaled by 10^18, not the decimal text.
+     */
+    public String protoAmount() {
+        try {
+            return amount.movePointRight(18).toBigIntegerExact().toString();
+        } catch (ArithmeticException e) {
+            throw new IllegalArgumentException("DecCoin supports at most 18 fractional digits", e);
+        }
+    }
+
     @Override
     public String toString() {
         return amount.toPlainString() + denom;

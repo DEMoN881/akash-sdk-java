@@ -52,7 +52,7 @@ public final class MarketMessages {
                             .setGseq(order.gseq()).setOseq(order.oseq())
                             .setProvider(provider).build())
                     .setPrice(cosmos.base.v1beta1.CoinOuterClass.DecCoin.newBuilder()
-                            .setDenom(price.denom()).setAmount(price.amount().toPlainString()).build())
+                            .setDenom(price.denom()).setAmount(price.protoAmount()).build())
                     .setDeposit(Deposits.fromBalance(deposit))
                     .build().toByteArray();
         }
