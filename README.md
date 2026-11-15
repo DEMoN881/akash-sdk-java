@@ -21,7 +21,7 @@ cd JAkash-Desktop
 - **Full protobuf transaction signing** — SignDoc serialization, secp256k1 signing, TxRaw broadcast
 - **gRPC-native queries** — Generated blocking stubs for all Akash and Cosmos modules
 - **REST/LCD fallback** — Works with any Cosmos LCD endpoint out of the box
-- **SDL parser and builder** — Parse Akash SDL YAML, or build it in Java and patch an existing file
+- **SDL parser, builder, and deployment encoding** — Build an SDL in Java and turn it into group bytes plus the manifest version
 - **Manifest submission** — Submit manifests to providers over mTLS
 - **Certificate generation** — X.509 certificates for tenant-provider mTLS
 - **Keyring** — Encrypted file-based (AES-256-GCM) and in-memory key storage
@@ -29,7 +29,7 @@ cd JAkash-Desktop
 
 ## Quick start
 
-`v0.3.0` adds `SdlBuilder`. Describe a container in Java, or open an existing YAML file and change one field. The result is the same SDL that `SdlParser` reads.
+`v0.3.5` adds `SdlBuilder` and `SdlDeployment`. Describe a container in Java, or open an existing YAML file and change one field. `SdlDeployment.from(sdl)` turns that SDL into the group bytes and the manifest version a deployment transaction needs.
 
 The builder does not broadcast a transaction or create a deployment. It builds the description. Pass the `Sdl` to `ManifestBuilder.fromSdl` when you need a provider manifest.
 
@@ -48,7 +48,7 @@ Maven:
 <dependency>
     <groupId>com.github.DEMoN881</groupId>
     <artifactId>akash-sdk-java</artifactId>
-    <version>v0.3.0</version>
+    <version>v0.3.5</version>
 </dependency>
 ```
 
@@ -60,11 +60,11 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.DEMoN881:akash-sdk-java:v0.3.0'
+    implementation 'com.github.DEMoN881:akash-sdk-java:v0.3.5'
 }
 ```
 
-JitPack builds a new tag for a few minutes. If `v0.3.0` does not resolve yet, refresh the dependencies.
+JitPack builds a new tag for a few minutes. If `v0.3.5` does not resolve yet, refresh the dependencies.
 
 ### One container
 
@@ -163,6 +163,36 @@ On a group, before `end()`:
 | `signedBy("akash1...")` | an auditor the provider must have |
 
 A port without `global: true` does not appear in `uris`. Cpu, memory, disk, count, and price are not updated on an open deployment: those need a new deployment. Image, env, command, and args change by submitting a new manifest on the same deployment.
+
+### Send the deployment
+
+`price` is the per-block ceiling. The name passed to `price` must be the service name, or the group is empty and `SdlDeployment.from` refuses it. The deposit is separate: it is the escrow, and the mainnet minimum is `500000` uact.
+
+```java
+import network.akash.sdk.client.BroadcastOptions;
+import network.akash.sdk.cosmos.Coin;
+import network.akash.sdk.manifest.ManifestClient;
+import network.akash.sdk.sdl.SdlDeployment;
+import network.akash.sdk.types.deployment.DeploymentID;
+import network.akash.sdk.types.deployment.DeploymentMessages;
+
+SdlDeployment ready = SdlDeployment.from(sdl);
+
+client.tx().broadcast(
+        List.of(new DeploymentMessages.MsgCreateDeployment(
+                new DeploymentID(address, dseq),
+                ready.groups(),
+                ready.version(),
+                Coin.of("uact", 500_000)
+        )),
+        BroadcastOptions.withGas(800_000, false),
+        BroadcastOptions.withFees("40000uakt")
+);
+
+new ManifestClient().submitManifest(providerUrl, dseq, ready.manifestJson(), cert);
+```
+
+`ready.version()` is the hash of `ready.manifestJson()`. The provider PUT must send that same JSON. After the lease is open, the container URL comes back in the provider `uris` array.
 
 ## Client
 
@@ -292,7 +322,7 @@ AkashClient
 | `go/node/provider/v1beta4` | `network.akash.sdk.types.provider` | Provider messages |
 | `go/node/audit/v1` | `network.akash.sdk.types.audit` | Audit messages |
 | `go/node/cert/v1` | `network.akash.sdk.types.cert` | Certificate messages |
-| — | `network.akash.sdk.sdl` | SDL parser and `SdlBuilder` |
+| — | `network.akash.sdk.sdl` | SDL parser, `SdlBuilder`, and `SdlDeployment` |
 | — | `network.akash.sdk.manifest` | Manifest builder & mTLS submission |
 | — | `network.akash.sdk.crypto` | Bech32, AkashKeyPair, CertificateGenerator |
 | — | `network.akash.sdk.keyring` | Encrypted file-based & in-memory keyring |
@@ -312,7 +342,7 @@ Requires **Java 21+**.
 mvn test
 ```
 
-188 tests covering the modules.
+190 tests covering the modules.
 
 ## Dependencies
 
