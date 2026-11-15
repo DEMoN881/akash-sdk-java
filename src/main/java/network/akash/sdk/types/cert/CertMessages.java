@@ -1,13 +1,10 @@
 package network.akash.sdk.types.cert;
 
+import com.google.protobuf.ByteString;
 import network.akash.sdk.cosmos.AccAddress;
 import network.akash.sdk.cosmos.Msg;
 import java.util.List;
 
-/**
- * Certificate transaction messages.
- * Port of akash-api/go/node/cert/v1beta3 messages.
- */
 public final class CertMessages {
 
     public static final String ROUTE = "cert";
@@ -40,7 +37,11 @@ public final class CertMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.cert.v1beta3.MsgCreateCertificate.newBuilder()
+                    .setOwner(owner)
+                    .setCert(ByteString.copyFrom(cert))
+                    .setPubkey(ByteString.copyFrom(pubkey))
+                    .build().toByteArray();
         }
     }
 
@@ -66,7 +67,10 @@ public final class CertMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.cert.v1beta3.MsgRevokeCertificate.newBuilder()
+                    .setOwner(owner)
+                    .setSerial(serial)
+                    .build().toByteArray();
         }
     }
 }

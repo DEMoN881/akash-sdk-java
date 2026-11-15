@@ -1,9 +1,13 @@
 package network.akash.sdk.client;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import cosmos.base.v1beta1.CoinOuterClass;
+import cosmos.tx.v1beta1.TxOuterClass;
 import network.akash.sdk.cosmos.Msg;
+import network.akash.sdk.cosmos.TxSigner;
 import network.akash.sdk.crypto.AkashKeyPair;
 import okhttp3.*;
 import org.slf4j.Logger;
@@ -147,15 +151,41 @@ public final class SerialBroadcaster implements TxClient, AutoCloseable {
         long seq = currentSequence.get();
         long accNum = accountNumber.get();
 
-        // Build the amino/protobuf transaction envelope
-        // In a full implementation this uses protobuf serialization + secp256k1 signing
-        Map<String, Object> txBody = buildTxBody(msgs, opts);
-        Map<String, Object> authInfo = buildAuthInfo(seq, accNum, opts);
-        Map<String, Object> txRaw = buildSignedTx(txBody, authInfo);
+        List<Any> anyMsgs = new ArrayList<>();
+        for (Msg msg : msgs) {
+            byte[] signBytes = msg.getSignBytes();
+            String typeUrl = resolveTypeUrl(msg);
+            anyMsgs.add(Any.newBuilder()
+                    .setTypeUrl(typeUrl)
+                    .setValue(ByteString.copyFrom(signBytes))
+                    .build());
+        }
 
-        // Broadcast via /cosmos/tx/v1beta1/txs (REST) in BROADCAST_MODE_SYNC
+        long gasLimit = opts.getGas() != null ? opts.getGas() : 200000L;
+        List<CoinOuterClass.Coin> feeCoins = new ArrayList<>();
+        if (opts.getFees() != null) {
+            String[] parsed = parseCoinString(opts.getFees());
+            feeCoins.add(CoinOuterClass.Coin.newBuilder()
+                    .setDenom(parsed[1])
+                    .setAmount(parsed[0])
+                    .build());
+        }
+
+        byte[] txRawBytes = TxSigner.buildAndSign(
+                keyPair, chainId, accNum, seq,
+                anyMsgs, gasLimit, feeCoins,
+                opts.getNote(), opts.getTimeoutHeight()
+        );
+
+        String txBytesBase64 = Base64.getEncoder().encodeToString(txRawBytes);
+
+        TxOuterClass.BroadcastTxRequest broadcastReq = TxOuterClass.BroadcastTxRequest.newBuilder()
+                .setTxBytes(ByteString.copyFrom(txRawBytes))
+                .setMode(TxOuterClass.BroadcastMode.BROADCAST_MODE_SYNC)
+                .build();
+
         Map<String, Object> broadcastPayload = new HashMap<>();
-        broadcastPayload.put("tx_bytes", txRaw.get("tx_bytes"));
+        broadcastPayload.put("tx_bytes", txBytesBase64);
         broadcastPayload.put("mode", "BROADCAST_MODE_SYNC");
 
         String json = mapper.writeValueAsString(broadcastPayload);
@@ -271,82 +301,28 @@ public final class SerialBroadcaster implements TxClient, AutoCloseable {
         }
     }
 
-    private Map<String, Object> buildTxBody(List<Msg> msgs, BroadcastOptions opts) {
-        List<Map<String, Object>> messages = new ArrayList<>();
-        for (Msg msg : msgs) {
-            Map<String, Object> m = new HashMap<>();
-            m.put("@type", "/akash.deployment.v1beta3.Msg" + capitalize(msg.getType()));
-            messages.add(m);
-        }
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("messages", messages);
-        if (opts.getNote() != null) body.put("memo", opts.getNote());
-        if (opts.getTimeoutHeight() != null) body.put("timeout_height", opts.getTimeoutHeight().toString());
-        return body;
+    private String resolveTypeUrl(Msg msg) {
+        String route = msg.getRoute();
+        String type = msg.getType();
+        String msgName = "Msg" + toPascalCase(type);
+        return switch (route) {
+            case "deployment" -> "/akash.deployment.v1beta3." + msgName;
+            case "market" -> "/akash.market.v1beta4." + msgName;
+            case "provider" -> "/akash.provider.v1beta3." + msgName;
+            case "audit" -> "/akash.audit.v1beta3." + msgName;
+            case "cert" -> "/akash.cert.v1beta3." + msgName;
+            default -> "/" + route + "." + msgName;
+        };
     }
 
-    private Map<String, Object> buildAuthInfo(long sequence, long accountNumber, BroadcastOptions opts) {
-        Map<String, Object> authInfo = new HashMap<>();
-        // Signer info
-        Map<String, Object> signerInfo = new HashMap<>();
-        Map<String, Object> publicKey = new HashMap<>();
-        publicKey.put("@type", "/cosmos.crypto.secp256k1.PubKey");
-        publicKey.put("key", Base64.getEncoder().encodeToString(keyPair.getPublicKey()));
-        signerInfo.put("public_key", publicKey);
-        signerInfo.put("sequence", String.valueOf(sequence));
-        Map<String, Object> modeInfo = new HashMap<>();
-        Map<String, Object> single = new HashMap<>();
-        single.put("mode", "SIGN_MODE_DIRECT");
-        modeInfo.put("single", single);
-        signerInfo.put("mode_info", modeInfo);
-        authInfo.put("signer_infos", List.of(signerInfo));
-
-        // Fee
-        Map<String, Object> fee = new HashMap<>();
-        if (opts.getGas() != null) {
-            fee.put("gas_limit", String.valueOf(opts.getGas()));
-        } else {
-            fee.put("gas_limit", "200000");
-        }
-        if (opts.getFees() != null) {
-            fee.put("amount", List.of(parseCoinString(opts.getFees())));
-        }
-        authInfo.put("fee", fee);
-        return authInfo;
-    }
-
-    private Map<String, Object> buildSignedTx(Map<String, Object> txBody, Map<String, Object> authInfo) {
-        // In a full implementation:
-        // 1. Serialize txBody and authInfo as protobuf
-        // 2. Create SignDoc (bodyBytes, authInfoBytes, chainId, accountNumber)
-        // 3. SHA256 hash the SignDoc
-        // 4. Sign with secp256k1 (keyPair.sign())
-        // 5. Compose TxRaw (bodyBytes, authInfoBytes, signatures)
-        // 6. Base64-encode for REST broadcast
-        //
-        // This is a stub — the actual signing requires cosmos-sdk protobuf schemas.
-        // For now, returns the structure that would be base64-encoded.
-        Map<String, Object> result = new HashMap<>();
-        result.put("tx_bytes", ""); // placeholder: real impl serializes protobuf
-        result.put("body", txBody);
-        result.put("auth_info", authInfo);
-        return result;
-    }
-
-    private Map<String, String> parseCoinString(String coin) {
-        // Parse "1000uakt" → {denom: "uakt", amount: "1000"}
+    private String[] parseCoinString(String coin) {
         int i = 0;
         while (i < coin.length() && (Character.isDigit(coin.charAt(i)) || coin.charAt(i) == '.')) i++;
-        Map<String, String> result = new HashMap<>();
-        result.put("denom", coin.substring(i));
-        result.put("amount", coin.substring(0, i));
-        return result;
+        return new String[]{coin.substring(0, i), coin.substring(i)};
     }
 
-    private String capitalize(String s) {
+    private String toPascalCase(String s) {
         if (s == null || s.isEmpty()) return s;
-        // "create-deployment" → "CreateDeployment"
         StringBuilder sb = new StringBuilder();
         for (String part : s.split("-")) {
             if (!part.isEmpty()) {

@@ -1,0 +1,18 @@
+syntax = "proto3";
+package akash.cert.v1beta3;
+option java_package = "akash.cert.v1beta3";
+option java_multiple_files = true;
+
+message MsgCreateCertificate {
+  string owner = 1;
+  bytes cert = 2;
+  bytes pubkey = 3;
+}
+
+message MsgRevokeCertificate {
+  string owner = 1;
+  string serial = 2;
+}
+
+message MsgCreateCertificateResponse {}
+message MsgRevokeCertificateResponse {}

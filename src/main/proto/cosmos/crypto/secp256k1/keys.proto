@@ -1,0 +1,13 @@
+syntax = "proto3";
+package cosmos.crypto.secp256k1;
+option java_package = "cosmos.crypto.secp256k1";
+option java_outer_classname = "Keys";
+option java_multiple_files = false;
+
+message PubKey {
+  bytes key = 1;
+}
+
+message PrivKey {
+  bytes key = 1;
+}

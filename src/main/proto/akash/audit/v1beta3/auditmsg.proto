@@ -1,0 +1,21 @@
+syntax = "proto3";
+package akash.audit.v1beta3;
+option java_package = "akash.audit.v1beta3";
+option java_multiple_files = true;
+
+import "akash/base/v1beta1/attribute.proto";
+
+message MsgSignProviderAttributes {
+  string owner = 1;
+  string auditor = 2;
+  repeated akash.base.v1beta1.Attribute attributes = 3;
+}
+
+message MsgDeleteProviderAttributes {
+  string owner = 1;
+  string auditor = 2;
+  repeated string keys = 3;
+}
+
+message MsgSignProviderAttributesResponse {}
+message MsgDeleteProviderAttributesResponse {}

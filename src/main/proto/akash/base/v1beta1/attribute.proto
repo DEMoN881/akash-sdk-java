@@ -1,0 +1,19 @@
+syntax = "proto3";
+package akash.base.v1beta1;
+option java_package = "akash.base.v1beta1";
+option java_multiple_files = true;
+
+message Attribute {
+  string key = 1;
+  string value = 2;
+}
+
+message PlacementRequirements {
+  repeated SignedBy signed_by = 1;
+  repeated Attribute attributes = 2;
+}
+
+message SignedBy {
+  repeated string all_of = 1;
+  repeated string any_of = 2;
+}

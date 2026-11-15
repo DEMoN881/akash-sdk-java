@@ -5,10 +5,6 @@ import network.akash.sdk.cosmos.Msg;
 import network.akash.sdk.types.base.Attribute;
 import java.util.List;
 
-/**
- * Provider transaction messages.
- * Port of akash-api/go/node/provider/v1beta3 messages.
- */
 public final class ProviderMessages {
 
     public static final String ROUTE = "provider";
@@ -40,7 +36,18 @@ public final class ProviderMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            var builder = akash.provider.v1beta3.MsgCreateProvider.newBuilder()
+                    .setOwner(owner)
+                    .setHostUri(hostUri);
+            if (email != null) builder.setEmail(email);
+            if (website != null) builder.setWebsite(website);
+            if (attributes != null) {
+                for (Attribute attr : attributes) {
+                    builder.addAttributes(akash.base.v1beta1.Attribute.newBuilder()
+                            .setKey(attr.key()).setValue(attr.value()).build());
+                }
+            }
+            return builder.build().toByteArray();
         }
     }
 
@@ -69,7 +76,18 @@ public final class ProviderMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            var builder = akash.provider.v1beta3.MsgUpdateProvider.newBuilder()
+                    .setOwner(owner)
+                    .setHostUri(hostUri);
+            if (email != null) builder.setEmail(email);
+            if (website != null) builder.setWebsite(website);
+            if (attributes != null) {
+                for (Attribute attr : attributes) {
+                    builder.addAttributes(akash.base.v1beta1.Attribute.newBuilder()
+                            .setKey(attr.key()).setValue(attr.value()).build());
+                }
+            }
+            return builder.build().toByteArray();
         }
     }
 
@@ -77,10 +95,7 @@ public final class ProviderMessages {
         @Override public String getRoute() { return ROUTE; }
         @Override public String getType() { return "delete-provider"; }
 
-        @Override
-        public void validateBasic() {
-            AccAddress.fromBech32(owner);
-        }
+        @Override public void validateBasic() { AccAddress.fromBech32(owner); }
 
         @Override
         public List<AccAddress> getSigners() {
@@ -89,7 +104,9 @@ public final class ProviderMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.provider.v1beta3.MsgDeleteProvider.newBuilder()
+                    .setOwner(owner)
+                    .build().toByteArray();
         }
     }
 }

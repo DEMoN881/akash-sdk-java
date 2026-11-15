@@ -1,0 +1,30 @@
+syntax = "proto3";
+package akash.provider.v1beta3;
+option java_package = "akash.provider.v1beta3";
+option java_multiple_files = true;
+
+import "akash/base/v1beta1/attribute.proto";
+
+message MsgCreateProvider {
+  string owner = 1;
+  string host_uri = 2;
+  repeated akash.base.v1beta1.Attribute attributes = 3;
+  string email = 6;
+  string website = 7;
+}
+
+message MsgUpdateProvider {
+  string owner = 1;
+  string host_uri = 2;
+  repeated akash.base.v1beta1.Attribute attributes = 3;
+  string email = 6;
+  string website = 7;
+}
+
+message MsgDeleteProvider {
+  string owner = 1;
+}
+
+message MsgCreateProviderResponse {}
+message MsgUpdateProviderResponse {}
+message MsgDeleteProviderResponse {}

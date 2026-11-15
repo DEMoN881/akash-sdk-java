@@ -5,10 +5,6 @@ import network.akash.sdk.cosmos.Msg;
 import network.akash.sdk.types.base.Attribute;
 import java.util.List;
 
-/**
- * Audit transaction messages.
- * Port of akash-api/go/node/audit/v1beta3 messages.
- */
 public final class AuditMessages {
 
     public static final String ROUTE = "audit";
@@ -39,7 +35,16 @@ public final class AuditMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            var builder = akash.audit.v1beta3.MsgSignProviderAttributes.newBuilder()
+                    .setOwner(owner)
+                    .setAuditor(auditor);
+            if (attributes != null) {
+                for (Attribute attr : attributes) {
+                    builder.addAttributes(akash.base.v1beta1.Attribute.newBuilder()
+                            .setKey(attr.key()).setValue(attr.value()).build());
+                }
+            }
+            return builder.build().toByteArray();
         }
     }
 
@@ -67,7 +72,13 @@ public final class AuditMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            var builder = akash.audit.v1beta3.MsgDeleteProviderAttributes.newBuilder()
+                    .setOwner(owner)
+                    .setAuditor(auditor);
+            if (keys != null) {
+                builder.addAllKeys(keys);
+            }
+            return builder.build().toByteArray();
         }
     }
 }

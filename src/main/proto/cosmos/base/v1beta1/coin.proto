@@ -1,0 +1,15 @@
+syntax = "proto3";
+package cosmos.base.v1beta1;
+option java_package = "cosmos.base.v1beta1";
+option java_outer_classname = "CoinOuterClass";
+option java_multiple_files = false;
+
+message Coin {
+  string denom = 1;
+  string amount = 2;
+}
+
+message DecCoin {
+  string denom = 1;
+  string amount = 2;
+}

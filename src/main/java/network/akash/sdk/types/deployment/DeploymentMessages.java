@@ -1,12 +1,14 @@
 package network.akash.sdk.types.deployment;
 
+import com.google.protobuf.ByteString;
 import network.akash.sdk.cosmos.AccAddress;
 import network.akash.sdk.cosmos.Coin;
 import network.akash.sdk.cosmos.Msg;
+
 import java.util.List;
 
 /**
- * Deployment transaction messages.
+ * Deployment transaction messages with full protobuf serialization.
  * Port of akash-api/go/node/deployment/v1beta3 messages.
  */
 public final class DeploymentMessages {
@@ -49,7 +51,18 @@ public final class DeploymentMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0]; // protobuf serialization in real impl
+            var builder = akash.deployment.v1beta3.MsgCreateDeployment.newBuilder()
+                    .setId(akash.deployment.v1beta3.DeploymentID.newBuilder()
+                            .setOwner(id.owner())
+                            .setDseq(id.dseq())
+                            .build())
+                    .setVersion(ByteString.copyFrom(version))
+                    .setDeposit(cosmos.base.v1beta1.CoinOuterClass.Coin.newBuilder()
+                            .setDenom(deposit.denom())
+                            .setAmount(deposit.amount().toString())
+                            .build())
+                    .setDepositor(depositor);
+            return builder.build().toByteArray();
         }
     }
 
@@ -78,7 +91,13 @@ public final class DeploymentMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.deployment.v1beta3.MsgUpdateDeployment.newBuilder()
+                    .setId(akash.deployment.v1beta3.DeploymentID.newBuilder()
+                            .setOwner(id.owner())
+                            .setDseq(id.dseq())
+                            .build())
+                    .setVersion(ByteString.copyFrom(version))
+                    .build().toByteArray();
         }
     }
 
@@ -86,10 +105,7 @@ public final class DeploymentMessages {
         @Override public String getRoute() { return ROUTE; }
         @Override public String getType() { return "close-deployment"; }
 
-        @Override
-        public void validateBasic() {
-            id.validate();
-        }
+        @Override public void validateBasic() { id.validate(); }
 
         @Override
         public List<AccAddress> getSigners() {
@@ -98,7 +114,12 @@ public final class DeploymentMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.deployment.v1beta3.MsgCloseDeployment.newBuilder()
+                    .setId(akash.deployment.v1beta3.DeploymentID.newBuilder()
+                            .setOwner(id.owner())
+                            .setDseq(id.dseq())
+                            .build())
+                    .build().toByteArray();
         }
     }
 
@@ -113,9 +134,7 @@ public final class DeploymentMessages {
         @Override
         public void validateBasic() {
             id.validate();
-            if (amount.isZero()) {
-                throw new IllegalArgumentException("invalid deposit: zero amount");
-            }
+            if (amount.isZero()) throw new IllegalArgumentException("invalid deposit: zero amount");
             AccAddress.fromBech32(depositor);
         }
 
@@ -126,67 +145,62 @@ public final class DeploymentMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.deployment.v1beta3.MsgDepositDeployment.newBuilder()
+                    .setId(akash.deployment.v1beta3.DeploymentID.newBuilder()
+                            .setOwner(id.owner())
+                            .setDseq(id.dseq())
+                            .build())
+                    .setAmount(cosmos.base.v1beta1.CoinOuterClass.Coin.newBuilder()
+                            .setDenom(amount.denom())
+                            .setAmount(amount.amount().toString())
+                            .build())
+                    .setDepositor(depositor)
+                    .build().toByteArray();
         }
     }
 
     public record MsgCloseGroup(GroupID id) implements Msg {
         @Override public String getRoute() { return ROUTE; }
         @Override public String getType() { return "close-group"; }
-
-        @Override
-        public void validateBasic() {
-            id.validate();
-        }
-
-        @Override
-        public List<AccAddress> getSigners() {
-            return List.of(AccAddress.fromBech32(id.owner()));
-        }
+        @Override public void validateBasic() { id.validate(); }
+        @Override public List<AccAddress> getSigners() { return List.of(AccAddress.fromBech32(id.owner())); }
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.deployment.v1beta3.MsgCloseGroup.newBuilder()
+                    .setId(akash.deployment.v1beta3.GroupID.newBuilder()
+                            .setOwner(id.owner()).setDseq(id.dseq()).setGseq(id.gseq()).build())
+                    .build().toByteArray();
         }
     }
 
     public record MsgPauseGroup(GroupID id) implements Msg {
         @Override public String getRoute() { return ROUTE; }
         @Override public String getType() { return "pause-group"; }
-
-        @Override
-        public void validateBasic() {
-            id.validate();
-        }
-
-        @Override
-        public List<AccAddress> getSigners() {
-            return List.of(AccAddress.fromBech32(id.owner()));
-        }
+        @Override public void validateBasic() { id.validate(); }
+        @Override public List<AccAddress> getSigners() { return List.of(AccAddress.fromBech32(id.owner())); }
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.deployment.v1beta3.MsgPauseGroup.newBuilder()
+                    .setId(akash.deployment.v1beta3.GroupID.newBuilder()
+                            .setOwner(id.owner()).setDseq(id.dseq()).setGseq(id.gseq()).build())
+                    .build().toByteArray();
         }
     }
 
     public record MsgStartGroup(GroupID id) implements Msg {
         @Override public String getRoute() { return ROUTE; }
         @Override public String getType() { return "start-group"; }
-
-        @Override
-        public void validateBasic() {
-            id.validate();
-        }
-
-        @Override
-        public List<AccAddress> getSigners() {
-            return List.of(AccAddress.fromBech32(id.owner()));
-        }
+        @Override public void validateBasic() { id.validate(); }
+        @Override public List<AccAddress> getSigners() { return List.of(AccAddress.fromBech32(id.owner())); }
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.deployment.v1beta3.MsgStartGroup.newBuilder()
+                    .setId(akash.deployment.v1beta3.GroupID.newBuilder()
+                            .setOwner(id.owner()).setDseq(id.dseq()).setGseq(id.gseq()).build())
+                    .build().toByteArray();
         }
     }
 }

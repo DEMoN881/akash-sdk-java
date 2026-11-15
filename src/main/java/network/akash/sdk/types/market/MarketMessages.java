@@ -6,10 +6,6 @@ import network.akash.sdk.cosmos.DecCoin;
 import network.akash.sdk.cosmos.Msg;
 import java.util.List;
 
-/**
- * Market transaction messages.
- * Port of akash-api/go/node/market/v1beta4 messages.
- */
 public final class MarketMessages {
 
     public static final String ROUTE = "market";
@@ -45,7 +41,16 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.market.v1beta4.MsgCreateBid.newBuilder()
+                    .setOrder(akash.market.v1beta4.OrderID.newBuilder()
+                            .setOwner(order.owner()).setDseq(order.dseq())
+                            .setGseq(order.gseq()).setOseq(order.oseq()).build())
+                    .setProvider(provider)
+                    .setPrice(cosmos.base.v1beta1.CoinOuterClass.DecCoin.newBuilder()
+                            .setDenom(price.denom()).setAmount(price.amount().toPlainString()).build())
+                    .setDeposit(cosmos.base.v1beta1.CoinOuterClass.Coin.newBuilder()
+                            .setDenom(deposit.denom()).setAmount(deposit.amount().toString()).build())
+                    .build().toByteArray();
         }
     }
 
@@ -53,10 +58,7 @@ public final class MarketMessages {
         @Override public String getRoute() { return ROUTE; }
         @Override public String getType() { return "close-bid"; }
 
-        @Override
-        public void validateBasic() {
-            bidId.validate();
-        }
+        @Override public void validateBasic() { bidId.validate(); }
 
         @Override
         public List<AccAddress> getSigners() {
@@ -65,7 +67,12 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.market.v1beta4.MsgCloseBid.newBuilder()
+                    .setBidId(akash.market.v1beta4.BidID.newBuilder()
+                            .setOwner(bidId.owner()).setDseq(bidId.dseq())
+                            .setGseq(bidId.gseq()).setOseq(bidId.oseq())
+                            .setProvider(bidId.provider()).build())
+                    .build().toByteArray();
         }
     }
 
@@ -73,10 +80,7 @@ public final class MarketMessages {
         @Override public String getRoute() { return ROUTE; }
         @Override public String getType() { return "create-lease"; }
 
-        @Override
-        public void validateBasic() {
-            bidId.validate();
-        }
+        @Override public void validateBasic() { bidId.validate(); }
 
         @Override
         public List<AccAddress> getSigners() {
@@ -85,7 +89,12 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.market.v1beta4.MsgCreateLease.newBuilder()
+                    .setBidId(akash.market.v1beta4.BidID.newBuilder()
+                            .setOwner(bidId.owner()).setDseq(bidId.dseq())
+                            .setGseq(bidId.gseq()).setOseq(bidId.oseq())
+                            .setProvider(bidId.provider()).build())
+                    .build().toByteArray();
         }
     }
 
@@ -93,10 +102,7 @@ public final class MarketMessages {
         @Override public String getRoute() { return ROUTE; }
         @Override public String getType() { return "withdraw-lease"; }
 
-        @Override
-        public void validateBasic() {
-            leaseId.validate();
-        }
+        @Override public void validateBasic() { leaseId.validate(); }
 
         @Override
         public List<AccAddress> getSigners() {
@@ -105,7 +111,12 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.market.v1beta4.MsgWithdrawLease.newBuilder()
+                    .setLeaseId(akash.market.v1beta4.LeaseID.newBuilder()
+                            .setOwner(leaseId.owner()).setDseq(leaseId.dseq())
+                            .setGseq(leaseId.gseq()).setOseq(leaseId.oseq())
+                            .setProvider(leaseId.provider()).build())
+                    .build().toByteArray();
         }
     }
 
@@ -113,10 +124,7 @@ public final class MarketMessages {
         @Override public String getRoute() { return ROUTE; }
         @Override public String getType() { return "close-lease"; }
 
-        @Override
-        public void validateBasic() {
-            leaseId.validate();
-        }
+        @Override public void validateBasic() { leaseId.validate(); }
 
         @Override
         public List<AccAddress> getSigners() {
@@ -125,7 +133,12 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return new byte[0];
+            return akash.market.v1beta4.MsgCloseLease.newBuilder()
+                    .setLeaseId(akash.market.v1beta4.LeaseID.newBuilder()
+                            .setOwner(leaseId.owner()).setDseq(leaseId.dseq())
+                            .setGseq(leaseId.gseq()).setOseq(leaseId.oseq())
+                            .setProvider(leaseId.provider()).build())
+                    .build().toByteArray();
         }
     }
 }
