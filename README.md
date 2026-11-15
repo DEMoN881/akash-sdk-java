@@ -21,15 +21,21 @@ cd JAkash-Desktop
 - **Full protobuf transaction signing** — SignDoc serialization, secp256k1 signing, TxRaw broadcast
 - **gRPC-native queries** — Generated blocking stubs for all Akash and Cosmos modules
 - **REST/LCD fallback** — Works with any Cosmos LCD endpoint out of the box
-- **SDL parser** — Parse Akash Stack Definition Language YAML into deployment groups
+- **SDL parser and builder** — Parse Akash SDL YAML, or build it in Java and patch an existing file
 - **Manifest submission** — Submit manifests to providers over mTLS
 - **Certificate generation** — X.509 certificates for tenant-provider mTLS
 - **Keyring** — Encrypted file-based (AES-256-GCM) and in-memory key storage
 - **Serial TX broadcaster** — Queue with automatic sequence sync and retry on mismatch
 
-## Installation
+## С чего начать
 
-### Maven (JitPack)
+В `v0.3.0` есть `SdlBuilder`. Им описываешь контейнер на Java, либо открываешь уже готовый YAML и меняешь в нём одно поле. На выходе тот же SDL, который читает `SdlParser`.
+
+Билдер не отправляет транзакцию и не создаёт деплой. Он собирает описание. Дальше `Sdl` можно отдать в `ManifestBuilder.fromSdl`.
+
+### Подключить
+
+Maven:
 
 ```xml
 <repositories>
@@ -42,11 +48,11 @@ cd JAkash-Desktop
 <dependency>
     <groupId>com.github.DEMoN881</groupId>
     <artifactId>akash-sdk-java</artifactId>
-    <version>v0.2.0</version>
+    <version>v0.3.0</version>
 </dependency>
 ```
 
-### Gradle (JitPack)
+Gradle:
 
 ```groovy
 repositories {
@@ -54,11 +60,113 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.DEMoN881:akash-sdk-java:v0.2.0'
+    implementation 'com.github.DEMoN881:akash-sdk-java:v0.3.0'
 }
 ```
 
-## Quick Start
+JitPack собирает тег несколько минут. Если `v0.3.0` ещё не резолвится, подожди и обнови зависимости.
+
+### Один контейнер
+
+Слова, которые встречаются ниже:
+
+- `service("web")` — один контейнер. `"web"` его имя.
+- `image` — образ.
+- `expose(80)` — открыть порт 80 наружу по TCP. Такой порт провайдер потом отдаёт в `uris`.
+- `compute("0.1", "128Mi", "128Mi")` — cpu, память, диск. Пиши так же, как в YAML.
+- `group("test")` — имя группы. Это имя уходит на чейн. Одна группа = один заказ и один счёт.
+- `price("web", "uact", "50000")` — потолок цены сервиса `web` в этой группе. Сумма строкой. На mainnet цена группы в `uact`.
+- `end()` — вернуться к билдеру.
+- `build()` — записать YAML, прочитать его парсером и проверить, что есть образ и хотя бы одна группа.
+- `yaml()` — тот же текст, если его надо сохранить в файл. Проверку сам не делает.
+
+```java
+import network.akash.sdk.sdl.Sdl;
+import network.akash.sdk.sdl.SdlBuilder;
+
+Sdl sdl = SdlBuilder.create()
+        .service("web")
+            .image("nginx:1.27-alpine")
+            .expose(80)
+            .compute("0.1", "128Mi", "128Mi")
+            .end()
+        .group("test")
+            .price("web", "uact", "50000")
+            .end()
+        .build();
+
+String yaml = SdlBuilder.from(sdl).yaml();
+```
+
+После `build()`:
+
+- `sdl.services().get("web").image()` — `"nginx:1.27-alpine"`
+- `sdl.groups().get(0).name()` — `"test"`
+- `sdl.placements().get("test").pricing().get("web").amount()` — `"50000"`
+
+Повторный `service("web")` или `group("test")` не создаёт вторую запись. Он открывает ту же и дописывает в неё.
+
+### Поменять готовый YAML
+
+`from` оставляет файл как был. Меняется только то, что ты вызвал.
+
+```java
+Sdl updated = SdlBuilder.from(yaml)
+        .service("web")
+            .image("nginx:1.28-alpine")
+            .env("MODE", "prod")
+            .end()
+        .build();
+```
+
+Группа, цена, cpu и порты из исходного текста остаются. `env("MODE", "prod")` дописывает переменную. Если в файле env был списком `KEY=value`, он тоже сохранится.
+
+### Два контейнера в одной группе
+
+Оба сервиса указываешь в `price` одной и той же группы. Счёт один.
+
+```java
+Sdl sdl = SdlBuilder.create()
+        .service("web").image("nginx:1.27-alpine").expose(80).compute("0.1", "128Mi", "128Mi").end()
+        .service("api").image("my/api:1").expose(8080).compute("0.5", "512Mi", "1Gi").end()
+        .group("app")
+            .price("web", "uact", "10000")
+            .price("api", "uact", "20000")
+            .end()
+        .build();
+```
+
+Вторая группа с другим именем — это уже второй заказ. `group("app")` и `group("jobs")` дадут две группы.
+
+### Методы
+
+На сервисе, до `end()`:
+
+| Метод | Что пишет |
+|---|---|
+| `image("nginx:1.27-alpine")` | образ |
+| `count(2)` | сколько копий. Если не вызвать, будет 1 |
+| `expose(80)` | порт 80 наружу, TCP |
+| `expose(80, 80, "udp", false)` | свой внешний порт, протокол и флаг global |
+| `compute("0.1", "128Mi", "1Gi")` | cpu, память, диск |
+| `compute("1", "1Gi", "10Gi", "1")` | то же плюс gpu |
+| `env("MODE", "prod")` | переменная окружения |
+| `command("nginx", "-g", "daemon off;")` | command |
+| `args("--port", "80")` | args |
+
+На группе, до `end()`:
+
+| Метод | Что пишет |
+|---|---|
+| `price("web", "uact", "50000")` | потолок цены этого сервиса |
+| `attribute("region", "us-west")` | требование к провайдеру |
+| `signedBy("akash1...")` | аудитор, которого провайдер должен иметь |
+
+Порт без `global: true` в `uris` не появится. Cpu, память, диск, count и цену на уже открытом деплое билдер не обновляет: это новый деплой. Образ, env, command и args меняются новым манифестом поверх того же деплоя.
+
+## Клиент
+
+Ниже тот же SDK, которым этот `Sdl` потом уезжает в сеть. Ключ кошелька берётся из мнемоники: `AkashKeyPair.fromMnemonic(mnemonic)`. Для живого деплоя nginx смотри [JAkash Desktop](https://github.com/DEMoN881/JAkash-Desktop).
 
 ### Create a client (REST mode)
 
@@ -94,57 +202,33 @@ var deployments = client.query().deployments(Map.of(
 ));
 ```
 
-### Create and close a deployment
+### Close a deployment
+
+Комиссия транзакции в `uakt`. На закрытие закладывай газ с запасом: 200000 на mainnet уже не хватает.
 
 ```java
 import network.akash.sdk.types.deployment.*;
 
-// Close a deployment
 var result = client.tx().broadcast(
     List.of(new DeploymentMessages.MsgCloseDeployment(
         new DeploymentID("akash1...", 12345)
     )),
-    BroadcastOptions.withGas(200000, false),
-    BroadcastOptions.withFees("5000uakt")
+    BroadcastOptions.withGas(400000, false),
+    BroadcastOptions.withFees("20000uakt")
 );
 ```
 
-### Parse an SDL file
+### Прочитать готовый файл
 
 ```java
-import network.akash.sdk.sdl.*;
+import network.akash.sdk.sdl.Sdl;
+import network.akash.sdk.sdl.SdlParser;
 
-Sdl sdl = SdlParser.parse("""
-    version: "2.0"
-    services:
-      web:
-        image: nginx:latest
-        expose:
-          - port: 80
-            as: 80
-            to:
-              - global: true
-    profiles:
-      compute:
-        web:
-          resources:
-            cpu:
-              units: 0.5
-            memory:
-              size: 512Mi
-            storage:
-              size: 1Gi
-      placement:
-        dcloud:
-          pricing:
-            web:
-              denom: uakt
-              amount: 1000
-    """);
-
+Sdl sdl = SdlParser.parse(yaml);
 sdl.validate();
-System.out.println("Groups: " + sdl.groups().size());
 ```
+
+`SdlParser.parse` только читает. Собрать или изменить документ можно через `SdlBuilder` выше.
 
 ### Generate mTLS certificate
 
@@ -208,7 +292,7 @@ AkashClient
 | `go/node/provider/v1beta4` | `network.akash.sdk.types.provider` | Provider messages |
 | `go/node/audit/v1` | `network.akash.sdk.types.audit` | Audit messages |
 | `go/node/cert/v1` | `network.akash.sdk.types.cert` | Certificate messages |
-| — | `network.akash.sdk.sdl` | SDL parser (YAML → deployment groups) |
+| — | `network.akash.sdk.sdl` | SDL parser and `SdlBuilder` |
 | — | `network.akash.sdk.manifest` | Manifest builder & mTLS submission |
 | — | `network.akash.sdk.crypto` | Bech32, AkashKeyPair, CertificateGenerator |
 | — | `network.akash.sdk.keyring` | Encrypted file-based & in-memory keyring |
@@ -228,7 +312,7 @@ Requires **Java 21+**.
 mvn test
 ```
 
-168 unit tests covering all modules.
+188 tests covering the modules.
 
 ## Dependencies
 

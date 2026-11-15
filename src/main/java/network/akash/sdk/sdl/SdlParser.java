@@ -98,12 +98,7 @@ public final class SdlParser {
         Map<String, Object> res = (Map<String, Object>) compute.getOrDefault("resources", Map.of());
         Map<String, Object> cpuRaw = (Map<String, Object>) res.getOrDefault("cpu", Map.of());
         Map<String, Object> memRaw = (Map<String, Object>) res.getOrDefault("memory", Map.of());
-        Map<String, Object> storageRaw = (Map<String, Object>) res.getOrDefault("storage", Map.of());
-        // storage can be a list or map
-        if (storageRaw.isEmpty() && res.get("storage") instanceof List) {
-            List<Map<String, Object>> storageList = (List<Map<String, Object>>) res.get("storage");
-            if (!storageList.isEmpty()) storageRaw = storageList.get(0);
-        }
+        Map<String, Object> storageRaw = storageNode(res.get("storage"));
         Map<String, Object> gpuRaw = (Map<String, Object>) res.getOrDefault("gpu", Map.of());
 
         ResourceUnits cpu = new ResourceUnits(
@@ -167,6 +162,17 @@ public final class SdlParser {
                     placement.attributes(), placement.signedBy(), resources));
         }
         return groups;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> storageNode(Object node) {
+        if (node instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
+        }
+        if (node instanceof List<?> list && !list.isEmpty() && list.get(0) instanceof Map<?, ?> first) {
+            return (Map<String, Object>) first;
+        }
+        return Map.of();
     }
 
     @SuppressWarnings("unchecked")
