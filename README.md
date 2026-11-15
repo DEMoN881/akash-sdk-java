@@ -32,7 +32,7 @@
 <dependency>
     <groupId>com.github.DEMoN881</groupId>
     <artifactId>akash-sdk-java</artifactId>
-    <version>v0.1.0</version>
+    <version>v0.1.1</version>
 </dependency>
 ```
 
@@ -44,7 +44,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.DEMoN881:akash-sdk-java:v0.1.0'
+    implementation 'com.github.DEMoN881:akash-sdk-java:v0.1.1'
 }
 ```
 
