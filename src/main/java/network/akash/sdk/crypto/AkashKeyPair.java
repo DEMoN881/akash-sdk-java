@@ -46,6 +46,16 @@ public final class AkashKeyPair {
         return new AkashKeyPair(bytes);
     }
 
+    public static AkashKeyPair fromMnemonic(String mnemonic) {
+        return fromMnemonic(mnemonic, "");
+    }
+
+    public static AkashKeyPair fromMnemonic(String mnemonic, String passphrase) {
+        byte[] seed = Bip39.mnemonicToSeed(mnemonic.trim(), passphrase);
+        byte[] privKey = Bip32.deriveCosmosPrivateKey(seed);
+        return new AkashKeyPair(privKey);
+    }
+
     public byte[] getPublicKey() {
         return Arrays.copyOf(publicKey, publicKey.length);
     }
