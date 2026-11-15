@@ -1,0 +1,44 @@
+syntax = "proto3";
+package akash.audit.v1beta3;
+option java_package = "akash.audit.v1beta3";
+option java_multiple_files = true;
+
+import "akash/base/v1beta1/attribute.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+message AuditedAttributes {
+  string owner = 1;
+  string auditor = 2;
+  repeated akash.base.v1beta1.Attribute attributes = 3;
+}
+
+message QueryAllProvidersAttributesRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+message QueryAllProvidersAttributesResponse {
+  repeated AuditedAttributes providers = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryProviderAttributesRequest {
+  string owner = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+message QueryProviderAttributesResponse {
+  repeated AuditedAttributes providers = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryProviderAuditorRequest {
+  string auditor = 1;
+  string owner = 2;
+}
+message QueryProviderAuditorResponse {
+  repeated AuditedAttributes providers = 1;
+}
+
+service Query {
+  rpc AllProvidersAttributes(QueryAllProvidersAttributesRequest) returns (QueryAllProvidersAttributesResponse);
+  rpc ProviderAttributes(QueryProviderAttributesRequest) returns (QueryProviderAttributesResponse);
+  rpc ProviderAuditorAttributes(QueryProviderAuditorRequest) returns (QueryProviderAuditorResponse);
+}

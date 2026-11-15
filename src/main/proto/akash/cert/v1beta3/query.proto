@@ -1,0 +1,34 @@
+syntax = "proto3";
+package akash.cert.v1beta3;
+option java_package = "akash.cert.v1beta3";
+option java_multiple_files = true;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+message CertificateInfo {
+  string owner = 1;
+  string serial = 2;
+  string state = 3;
+  bytes cert = 4;
+  bytes pubkey = 5;
+}
+
+message CertificateFilter {
+  string owner = 1;
+  string serial = 2;
+  string state = 3;
+}
+
+message QueryCertificatesRequest {
+  CertificateFilter filter = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryCertificatesResponse {
+  repeated CertificateInfo certificates = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+service Query {
+  rpc Certificates(QueryCertificatesRequest) returns (QueryCertificatesResponse);
+}

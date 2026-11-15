@@ -1,0 +1,25 @@
+syntax = "proto3";
+package cosmos.auth.v1beta1;
+option java_package = "cosmos.auth.v1beta1";
+option java_multiple_files = true;
+
+import "google/protobuf/any.proto";
+
+message BaseAccount {
+  string address = 1;
+  google.protobuf.Any pub_key = 2;
+  uint64 account_number = 3;
+  uint64 sequence = 4;
+}
+
+message QueryAccountRequest {
+  string address = 1;
+}
+
+message QueryAccountResponse {
+  google.protobuf.Any account = 1;
+}
+
+service Query {
+  rpc Account(QueryAccountRequest) returns (QueryAccountResponse);
+}

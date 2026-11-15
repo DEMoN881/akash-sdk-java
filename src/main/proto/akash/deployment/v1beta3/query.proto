@@ -1,0 +1,58 @@
+syntax = "proto3";
+package akash.deployment.v1beta3;
+option java_package = "akash.deployment.v1beta3";
+option java_multiple_files = true;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "akash/deployment/v1beta3/deploymentmsg.proto";
+
+message QueryDeploymentRequest {
+  DeploymentID id = 1;
+}
+
+message Deployment {
+  DeploymentID deployment_id = 1;
+  string state = 2;
+  string version = 3;
+  int64 created_at = 4;
+}
+
+message QueryDeploymentResponse {
+  Deployment deployment = 1;
+  repeated Group groups = 2;
+}
+
+message Group {
+  GroupID group_id = 1;
+  string state = 2;
+}
+
+message DeploymentFilters {
+  string owner = 1;
+  uint64 dseq = 2;
+  string state = 3;
+}
+
+message QueryDeploymentsRequest {
+  DeploymentFilters filters = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryDeploymentsResponse {
+  repeated QueryDeploymentResponse deployments = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGroupRequest {
+  GroupID id = 1;
+}
+
+message QueryGroupResponse {
+  Group group = 1;
+}
+
+service Query {
+  rpc Deployment(QueryDeploymentRequest) returns (QueryDeploymentResponse);
+  rpc Deployments(QueryDeploymentsRequest) returns (QueryDeploymentsResponse);
+  rpc Group(QueryGroupRequest) returns (QueryGroupResponse);
+}

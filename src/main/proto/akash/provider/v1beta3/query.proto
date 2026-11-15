@@ -1,0 +1,35 @@
+syntax = "proto3";
+package akash.provider.v1beta3;
+option java_package = "akash.provider.v1beta3";
+option java_multiple_files = true;
+
+import "akash/base/v1beta1/attribute.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+message Provider {
+  string owner = 1;
+  string host_uri = 2;
+  repeated akash.base.v1beta1.Attribute attributes = 3;
+  string email = 6;
+  string website = 7;
+}
+
+message QueryProviderRequest {
+  string owner = 1;
+}
+message QueryProviderResponse {
+  Provider provider = 1;
+}
+
+message QueryProvidersRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+message QueryProvidersResponse {
+  repeated Provider providers = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+service Query {
+  rpc Provider(QueryProviderRequest) returns (QueryProviderResponse);
+  rpc Providers(QueryProvidersRequest) returns (QueryProvidersResponse);
+}

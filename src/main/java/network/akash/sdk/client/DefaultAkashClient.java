@@ -1,6 +1,8 @@
 package network.akash.sdk.client;
 
+import io.grpc.ManagedChannel;
 import network.akash.sdk.crypto.AkashKeyPair;
+import network.akash.sdk.grpc.GrpcChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +83,9 @@ public final class DefaultAkashClient implements AkashClient {
     public static final class Builder {
         private String rpcEndpoint;
         private String restEndpoint;
+        private String grpcHost;
+        private int grpcPort = 9090;
+        private boolean grpcTls = false;
         private String chainId = "akashnet-2";
         private AkashKeyPair keyPair;
 
@@ -93,6 +98,19 @@ public final class DefaultAkashClient implements AkashClient {
 
         public Builder restEndpoint(String restEndpoint) {
             this.restEndpoint = restEndpoint;
+            return this;
+        }
+
+        public Builder grpcEndpoint(String host, int port) {
+            this.grpcHost = host;
+            this.grpcPort = port;
+            return this;
+        }
+
+        public Builder grpcEndpoint(String host, int port, boolean useTls) {
+            this.grpcHost = host;
+            this.grpcPort = port;
+            this.grpcTls = useTls;
             return this;
         }
 
@@ -114,7 +132,16 @@ public final class DefaultAkashClient implements AkashClient {
             String rest = restEndpoint.endsWith("/") ? restEndpoint : restEndpoint + "/";
 
             NodeClient nodeClient = new DefaultNodeClient(rpc);
-            QueryClient queryClient = new DefaultQueryClient(rest);
+
+            QueryClient queryClient;
+            if (grpcHost != null) {
+                GrpcChannel grpcChannel = GrpcChannel.connect(grpcHost, grpcPort, grpcTls);
+                queryClient = new GrpcQueryClient(grpcChannel.getChannel());
+                log.info("Using gRPC query client: {}:{}", grpcHost, grpcPort);
+            } else {
+                queryClient = new DefaultQueryClient(rest);
+                log.info("Using REST/LCD query client: {}", rest);
+            }
 
             TxClient txClient;
             if (keyPair != null) {
@@ -125,7 +152,7 @@ public final class DefaultAkashClient implements AkashClient {
                 };
             }
 
-            log.info("Akash client initialized: rpc={}, rest={}, chainId={}", rpc, rest, chainId);
+            log.info("Akash client initialized: rpc={}, chainId={}", rpc, chainId);
             return new DefaultAkashClient(queryClient, txClient, nodeClient, chainId);
         }
     }
