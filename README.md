@@ -32,7 +32,7 @@
 <dependency>
     <groupId>com.github.DEMoN881</groupId>
     <artifactId>akash-sdk-java</artifactId>
-    <version>v0.1.1</version>
+    <version>v0.2.0</version>
 </dependency>
 ```
 
@@ -44,7 +44,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.DEMoN881:akash-sdk-java:v0.1.1'
+    implementation 'com.github.DEMoN881:akash-sdk-java:v0.2.0'
 }
 ```
 
@@ -193,11 +193,11 @@ AkashClient
 | Go Module | Java Package | Description |
 |---|---|---|
 | `go/node/client/v1beta2` | `network.akash.sdk.client` | Client, QueryClient, TxClient, NodeClient, SerialBroadcaster |
-| `go/node/deployment/v1beta3` | `network.akash.sdk.types.deployment` | DeploymentID, GroupID, deployment messages |
-| `go/node/market/v1beta4` | `network.akash.sdk.types.market` | OrderID, BidID, LeaseID, market messages |
-| `go/node/provider/v1beta3` | `network.akash.sdk.types.provider` | Provider messages |
-| `go/node/audit/v1beta3` | `network.akash.sdk.types.audit` | Audit messages |
-| `go/node/cert/v1beta3` | `network.akash.sdk.types.cert` | Certificate messages |
+| `go/node/deployment/v1beta4` | `network.akash.sdk.types.deployment` | DeploymentID, GroupID, deployment messages |
+| `go/node/market/v1beta5` | `network.akash.sdk.types.market` | OrderID, BidID, LeaseID, market messages |
+| `go/node/provider/v1beta4` | `network.akash.sdk.types.provider` | Provider messages |
+| `go/node/audit/v1` | `network.akash.sdk.types.audit` | Audit messages |
+| `go/node/cert/v1` | `network.akash.sdk.types.cert` | Certificate messages |
 | — | `network.akash.sdk.sdl` | SDL parser (YAML → deployment groups) |
 | — | `network.akash.sdk.manifest` | Manifest builder & mTLS submission |
 | — | `network.akash.sdk.crypto` | Bech32, AkashKeyPair, CertificateGenerator |

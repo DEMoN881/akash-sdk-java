@@ -5,7 +5,7 @@ import java.util.Objects;
 
 /**
  * Deployment identifier (owner + dseq).
- * Port of akash-api/go/node/deployment/v1beta3.DeploymentID
+ * Port of chain-sdk go/node/deployment/v1.DeploymentID
  */
 public record DeploymentID(String owner, long dseq) {
 

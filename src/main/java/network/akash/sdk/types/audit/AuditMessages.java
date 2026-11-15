@@ -35,7 +35,7 @@ public final class AuditMessages {
 
         @Override
         public byte[] getSignBytes() {
-            var builder = akash.audit.v1beta3.MsgSignProviderAttributes.newBuilder()
+            var builder = akash.audit.v1.MsgSignProviderAttributes.newBuilder()
                     .setOwner(owner)
                     .setAuditor(auditor);
             if (attributes != null) {
@@ -72,7 +72,7 @@ public final class AuditMessages {
 
         @Override
         public byte[] getSignBytes() {
-            var builder = akash.audit.v1beta3.MsgDeleteProviderAttributes.newBuilder()
+            var builder = akash.audit.v1.MsgDeleteProviderAttributes.newBuilder()
                     .setOwner(owner)
                     .setAuditor(auditor);
             if (keys != null) {

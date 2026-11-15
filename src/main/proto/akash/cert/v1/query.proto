@@ -1,16 +1,25 @@
 syntax = "proto3";
-package akash.cert.v1beta3;
-option java_package = "akash.cert.v1beta3";
+package akash.cert.v1;
+option java_package = "akash.cert.v1";
 option java_multiple_files = true;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
 
-message CertificateInfo {
-  string owner = 1;
+enum State {
+  invalid = 0;
+  valid = 1;
+  revoked = 2;
+}
+
+message Certificate {
+  State state = 2;
+  bytes cert = 3;
+  bytes pubkey = 4;
+}
+
+message CertificateResponse {
+  Certificate certificate = 1;
   string serial = 2;
-  string state = 3;
-  bytes cert = 4;
-  bytes pubkey = 5;
 }
 
 message CertificateFilter {
@@ -25,7 +34,7 @@ message QueryCertificatesRequest {
 }
 
 message QueryCertificatesResponse {
-  repeated CertificateInfo certificates = 1;
+  repeated CertificateResponse certificates = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

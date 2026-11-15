@@ -154,7 +154,7 @@ public final class SerialBroadcaster implements TxClient, AutoCloseable {
         List<Any> anyMsgs = new ArrayList<>();
         for (Msg msg : msgs) {
             byte[] signBytes = msg.getSignBytes();
-            String typeUrl = resolveTypeUrl(msg);
+            String typeUrl = typeUrl(msg);
             anyMsgs.add(Any.newBuilder()
                     .setTypeUrl(typeUrl)
                     .setValue(ByteString.copyFrom(signBytes))
@@ -301,16 +301,16 @@ public final class SerialBroadcaster implements TxClient, AutoCloseable {
         }
     }
 
-    private String resolveTypeUrl(Msg msg) {
+    static String typeUrl(Msg msg) {
         String route = msg.getRoute();
         String type = msg.getType();
         String msgName = "Msg" + toPascalCase(type);
         return switch (route) {
-            case "deployment" -> "/akash.deployment.v1beta3." + msgName;
-            case "market" -> "/akash.market.v1beta4." + msgName;
-            case "provider" -> "/akash.provider.v1beta3." + msgName;
-            case "audit" -> "/akash.audit.v1beta3." + msgName;
-            case "cert" -> "/akash.cert.v1beta3." + msgName;
+            case "deployment" -> "/akash.deployment.v1beta4." + msgName;
+            case "market" -> "/akash.market.v1beta5." + msgName;
+            case "provider" -> "/akash.provider.v1beta4." + msgName;
+            case "audit" -> "/akash.audit.v1." + msgName;
+            case "cert" -> "/akash.cert.v1." + msgName;
             default -> "/" + route + "." + msgName;
         };
     }
@@ -321,7 +321,7 @@ public final class SerialBroadcaster implements TxClient, AutoCloseable {
         return new String[]{coin.substring(0, i), coin.substring(i)};
     }
 
-    private String toPascalCase(String s) {
+    private static String toPascalCase(String s) {
         if (s == null || s.isEmpty()) return s;
         StringBuilder sb = new StringBuilder();
         for (String part : s.split("-")) {

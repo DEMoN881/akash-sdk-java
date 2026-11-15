@@ -1,10 +1,10 @@
 syntax = "proto3";
-package akash.deployment.v1beta3;
-option java_package = "akash.deployment.v1beta3";
+package akash.deployment.v1beta4;
+option java_package = "akash.deployment.v1beta4";
 option java_multiple_files = true;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "akash/deployment/v1beta3/deploymentmsg.proto";
+import "akash/deployment/v1beta4/deploymentmsg.proto";
 
 message QueryDeploymentRequest {
   DeploymentID id = 1;
@@ -13,7 +13,7 @@ message QueryDeploymentRequest {
 message Deployment {
   DeploymentID deployment_id = 1;
   string state = 2;
-  string version = 3;
+  bytes hash = 3;
   int64 created_at = 4;
 }
 

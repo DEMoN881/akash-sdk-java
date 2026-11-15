@@ -46,14 +46,14 @@ public final class DefaultQueryClient implements QueryClient {
 
     @Override
     public Map<String, Object> deployments(Map<String, String> filters) throws Exception {
-        HttpUrl.Builder url = baseUrl("akash/deployment/v1beta3/deployments/list");
+        HttpUrl.Builder url = baseUrl("akash/deployment/v1beta4/deployments/list");
         if (filters != null) filters.forEach(url::addQueryParameter);
         return get(url.build());
     }
 
     @Override
     public Map<String, Object> deployment(DeploymentID id) throws Exception {
-        return get(baseUrl("akash/deployment/v1beta3/deployments/info")
+        return get(baseUrl("akash/deployment/v1beta4/deployments/info")
                 .addQueryParameter("id.owner", id.owner())
                 .addQueryParameter("id.dseq", String.valueOf(id.dseq()))
                 .build());
@@ -61,7 +61,7 @@ public final class DefaultQueryClient implements QueryClient {
 
     @Override
     public Map<String, Object> group(GroupID id) throws Exception {
-        return get(baseUrl("akash/deployment/v1beta3/groups/info")
+        return get(baseUrl("akash/deployment/v1beta4/groups/info")
                 .addQueryParameter("id.owner", id.owner())
                 .addQueryParameter("id.dseq", String.valueOf(id.dseq()))
                 .addQueryParameter("id.gseq", String.valueOf(id.gseq()))
@@ -72,14 +72,14 @@ public final class DefaultQueryClient implements QueryClient {
 
     @Override
     public Map<String, Object> orders(Map<String, String> filters) throws Exception {
-        HttpUrl.Builder url = baseUrl("akash/market/v1beta4/orders/list");
+        HttpUrl.Builder url = baseUrl("akash/market/v1beta5/orders/list");
         if (filters != null) filters.forEach(url::addQueryParameter);
         return get(url.build());
     }
 
     @Override
     public Map<String, Object> order(OrderID id) throws Exception {
-        return get(baseUrl("akash/market/v1beta4/orders/info")
+        return get(baseUrl("akash/market/v1beta5/orders/info")
                 .addQueryParameter("id.owner", id.owner())
                 .addQueryParameter("id.dseq", String.valueOf(id.dseq()))
                 .addQueryParameter("id.gseq", String.valueOf(id.gseq()))
@@ -89,14 +89,14 @@ public final class DefaultQueryClient implements QueryClient {
 
     @Override
     public Map<String, Object> bids(Map<String, String> filters) throws Exception {
-        HttpUrl.Builder url = baseUrl("akash/market/v1beta4/bids/list");
+        HttpUrl.Builder url = baseUrl("akash/market/v1beta5/bids/list");
         if (filters != null) filters.forEach(url::addQueryParameter);
         return get(url.build());
     }
 
     @Override
     public Map<String, Object> bid(BidID id) throws Exception {
-        return get(baseUrl("akash/market/v1beta4/bids/info")
+        return get(baseUrl("akash/market/v1beta5/bids/info")
                 .addQueryParameter("id.owner", id.owner())
                 .addQueryParameter("id.dseq", String.valueOf(id.dseq()))
                 .addQueryParameter("id.gseq", String.valueOf(id.gseq()))
@@ -107,14 +107,14 @@ public final class DefaultQueryClient implements QueryClient {
 
     @Override
     public Map<String, Object> leases(Map<String, String> filters) throws Exception {
-        HttpUrl.Builder url = baseUrl("akash/market/v1beta4/leases/list");
+        HttpUrl.Builder url = baseUrl("akash/market/v1beta5/leases/list");
         if (filters != null) filters.forEach(url::addQueryParameter);
         return get(url.build());
     }
 
     @Override
     public Map<String, Object> lease(LeaseID id) throws Exception {
-        return get(baseUrl("akash/market/v1beta4/leases/info")
+        return get(baseUrl("akash/market/v1beta5/leases/info")
                 .addQueryParameter("id.owner", id.owner())
                 .addQueryParameter("id.dseq", String.valueOf(id.dseq()))
                 .addQueryParameter("id.gseq", String.valueOf(id.gseq()))
@@ -127,43 +127,43 @@ public final class DefaultQueryClient implements QueryClient {
 
     @Override
     public Map<String, Object> providers(Map<String, String> filters) throws Exception {
-        HttpUrl.Builder url = baseUrl("akash/provider/v1beta3/providers");
+        HttpUrl.Builder url = baseUrl("akash/provider/v1beta4/providers");
         if (filters != null) filters.forEach(url::addQueryParameter);
         return get(url.build());
     }
 
     @Override
     public Map<String, Object> provider(String providerAddress) throws Exception {
-        return get(baseUrl("akash/provider/v1beta3/providers/" + providerAddress).build());
+        return get(baseUrl("akash/provider/v1beta4/providers/" + providerAddress).build());
     }
 
     // --- Audit ---
 
     @Override
     public Map<String, Object> allProvidersAttributes() throws Exception {
-        return get(baseUrl("akash/audit/v1beta3/audit/attributes/list").build());
+        return get(baseUrl("akash/audit/v1/audit/attributes/list").build());
     }
 
     @Override
     public Map<String, Object> providerAttributes(String providerAddress) throws Exception {
-        return get(baseUrl("akash/audit/v1beta3/audit/attributes/" + providerAddress + "/list").build());
+        return get(baseUrl("akash/audit/v1/audit/attributes/" + providerAddress + "/list").build());
     }
 
     @Override
     public Map<String, Object> providerAuditorAttributes(String providerAddress, String auditorAddress) throws Exception {
-        return get(baseUrl("akash/audit/v1beta3/audit/attributes/" + providerAddress + "/" + auditorAddress).build());
+        return get(baseUrl("akash/audit/v1/audit/attributes/" + auditorAddress + "/" + providerAddress).build());
     }
 
     @Override
     public Map<String, Object> auditorAttributes(String auditorAddress) throws Exception {
-        return get(baseUrl("akash/audit/v1beta3/audit/attributes/" + auditorAddress + "/list").build());
+        return get(baseUrl("akash/provider/v1/auditor/" + auditorAddress + "/list").build());
     }
 
     // --- Cert ---
 
     @Override
     public Map<String, Object> certificates(Map<String, String> filters) throws Exception {
-        HttpUrl.Builder url = baseUrl("akash/cert/v1beta3/certificates/list");
+        HttpUrl.Builder url = baseUrl("akash/cert/v1/certificates/list");
         if (filters != null) filters.forEach(url::addQueryParameter);
         return get(url.build());
     }

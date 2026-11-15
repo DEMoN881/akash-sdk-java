@@ -3,9 +3,14 @@ package network.akash.sdk.types.market;
 import network.akash.sdk.cosmos.AccAddress;
 import network.akash.sdk.cosmos.Coin;
 import network.akash.sdk.cosmos.DecCoin;
+import network.akash.sdk.cosmos.Deposits;
 import network.akash.sdk.cosmos.Msg;
 import java.util.List;
 
+/**
+ * Market transaction messages.
+ * Port of chain-sdk go/node/market/v1beta5, registered by Akash node 2.2.
+ */
 public final class MarketMessages {
 
     public static final String ROUTE = "market";
@@ -41,15 +46,14 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return akash.market.v1beta4.MsgCreateBid.newBuilder()
-                    .setOrder(akash.market.v1beta4.OrderID.newBuilder()
+            return akash.market.v1beta5.MsgCreateBid.newBuilder()
+                    .setId(akash.market.v1beta5.BidID.newBuilder()
                             .setOwner(order.owner()).setDseq(order.dseq())
-                            .setGseq(order.gseq()).setOseq(order.oseq()).build())
-                    .setProvider(provider)
+                            .setGseq(order.gseq()).setOseq(order.oseq())
+                            .setProvider(provider).build())
                     .setPrice(cosmos.base.v1beta1.CoinOuterClass.DecCoin.newBuilder()
                             .setDenom(price.denom()).setAmount(price.amount().toPlainString()).build())
-                    .setDeposit(cosmos.base.v1beta1.CoinOuterClass.Coin.newBuilder()
-                            .setDenom(deposit.denom()).setAmount(deposit.amount().toString()).build())
+                    .setDeposit(Deposits.fromBalance(deposit))
                     .build().toByteArray();
         }
     }
@@ -67,11 +71,8 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return akash.market.v1beta4.MsgCloseBid.newBuilder()
-                    .setBidId(akash.market.v1beta4.BidID.newBuilder()
-                            .setOwner(bidId.owner()).setDseq(bidId.dseq())
-                            .setGseq(bidId.gseq()).setOseq(bidId.oseq())
-                            .setProvider(bidId.provider()).build())
+            return akash.market.v1beta5.MsgCloseBid.newBuilder()
+                    .setId(bid(bidId))
                     .build().toByteArray();
         }
     }
@@ -89,11 +90,8 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return akash.market.v1beta4.MsgCreateLease.newBuilder()
-                    .setBidId(akash.market.v1beta4.BidID.newBuilder()
-                            .setOwner(bidId.owner()).setDseq(bidId.dseq())
-                            .setGseq(bidId.gseq()).setOseq(bidId.oseq())
-                            .setProvider(bidId.provider()).build())
+            return akash.market.v1beta5.MsgCreateLease.newBuilder()
+                    .setBidId(bid(bidId))
                     .build().toByteArray();
         }
     }
@@ -111,11 +109,8 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return akash.market.v1beta4.MsgWithdrawLease.newBuilder()
-                    .setLeaseId(akash.market.v1beta4.LeaseID.newBuilder()
-                            .setOwner(leaseId.owner()).setDseq(leaseId.dseq())
-                            .setGseq(leaseId.gseq()).setOseq(leaseId.oseq())
-                            .setProvider(leaseId.provider()).build())
+            return akash.market.v1beta5.MsgWithdrawLease.newBuilder()
+                    .setId(lease(leaseId))
                     .build().toByteArray();
         }
     }
@@ -133,12 +128,28 @@ public final class MarketMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return akash.market.v1beta4.MsgCloseLease.newBuilder()
-                    .setLeaseId(akash.market.v1beta4.LeaseID.newBuilder()
-                            .setOwner(leaseId.owner()).setDseq(leaseId.dseq())
-                            .setGseq(leaseId.gseq()).setOseq(leaseId.oseq())
-                            .setProvider(leaseId.provider()).build())
+            return akash.market.v1beta5.MsgCloseLease.newBuilder()
+                    .setId(lease(leaseId))
                     .build().toByteArray();
         }
+    }
+
+    private static akash.market.v1beta5.BidID bid(BidID id) {
+        var builder = akash.market.v1beta5.BidID.newBuilder()
+                .setOwner(id.owner()).setDseq(id.dseq())
+                .setGseq(id.gseq()).setOseq(id.oseq())
+                .setProvider(id.provider());
+        if (id.bseq() != 0) {
+            builder.setBseq(id.bseq());
+        }
+        return builder.build();
+    }
+
+    private static akash.market.v1beta5.LeaseID lease(LeaseID id) {
+        return akash.market.v1beta5.LeaseID.newBuilder()
+                .setOwner(id.owner()).setDseq(id.dseq())
+                .setGseq(id.gseq()).setOseq(id.oseq())
+                .setProvider(id.provider())
+                .build();
     }
 }

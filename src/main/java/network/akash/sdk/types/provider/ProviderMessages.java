@@ -36,11 +36,10 @@ public final class ProviderMessages {
 
         @Override
         public byte[] getSignBytes() {
-            var builder = akash.provider.v1beta3.MsgCreateProvider.newBuilder()
+            var builder = akash.provider.v1beta4.MsgCreateProvider.newBuilder()
                     .setOwner(owner)
-                    .setHostUri(hostUri);
-            if (email != null) builder.setEmail(email);
-            if (website != null) builder.setWebsite(website);
+                    .setHostUri(hostUri)
+                    .setInfo(providerInfo(email, website));
             if (attributes != null) {
                 for (Attribute attr : attributes) {
                     builder.addAttributes(akash.base.v1beta1.Attribute.newBuilder()
@@ -76,11 +75,10 @@ public final class ProviderMessages {
 
         @Override
         public byte[] getSignBytes() {
-            var builder = akash.provider.v1beta3.MsgUpdateProvider.newBuilder()
+            var builder = akash.provider.v1beta4.MsgUpdateProvider.newBuilder()
                     .setOwner(owner)
-                    .setHostUri(hostUri);
-            if (email != null) builder.setEmail(email);
-            if (website != null) builder.setWebsite(website);
+                    .setHostUri(hostUri)
+                    .setInfo(providerInfo(email, website));
             if (attributes != null) {
                 for (Attribute attr : attributes) {
                     builder.addAttributes(akash.base.v1beta1.Attribute.newBuilder()
@@ -89,6 +87,13 @@ public final class ProviderMessages {
             }
             return builder.build().toByteArray();
         }
+    }
+
+    private static akash.provider.v1beta4.Info providerInfo(String email, String website) {
+        var info = akash.provider.v1beta4.Info.newBuilder();
+        if (email != null) info.setEmail(email);
+        if (website != null) info.setWebsite(website);
+        return info.build();
     }
 
     public record MsgDeleteProvider(String owner) implements Msg {
@@ -104,7 +109,7 @@ public final class ProviderMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return akash.provider.v1beta3.MsgDeleteProvider.newBuilder()
+            return akash.provider.v1beta4.MsgDeleteProvider.newBuilder()
                     .setOwner(owner)
                     .build().toByteArray();
         }

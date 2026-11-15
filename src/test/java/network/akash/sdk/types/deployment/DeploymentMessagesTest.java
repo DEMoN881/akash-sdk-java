@@ -19,10 +19,14 @@ class DeploymentMessagesTest {
         VERSION[0] = 1;
     }
 
+    private static byte[] group() {
+        return akash.deployment.v1beta4.GroupSpec.newBuilder().setName("dcloud").build().toByteArray();
+    }
+
     @Test
     void createDeploymentValidation() {
         var msg = new DeploymentMessages.MsgCreateDeployment(
-                DID, List.of(new byte[]{1}), VERSION, Coin.of("uakt", 5000000), ADDR);
+                DID, List.of(group()), VERSION, Coin.of("uakt", 5000000));
         assertDoesNotThrow(msg::validateBasic);
         assertEquals("deployment", msg.getRoute());
         assertEquals("create-deployment", msg.getType());
@@ -33,7 +37,7 @@ class DeploymentMessagesTest {
     @Test
     void createDeploymentSignBytesNonEmpty() {
         var msg = new DeploymentMessages.MsgCreateDeployment(
-                DID, List.of(new byte[]{1}), VERSION, Coin.of("uakt", 5000000), ADDR);
+                DID, List.of(group()), VERSION, Coin.of("uakt", 5000000));
         byte[] signBytes = msg.getSignBytes();
         assertTrue(signBytes.length > 0);
     }
@@ -41,21 +45,21 @@ class DeploymentMessagesTest {
     @Test
     void createDeploymentEmptyGroupsThrows() {
         var msg = new DeploymentMessages.MsgCreateDeployment(
-                DID, List.of(), VERSION, Coin.of("uakt", 5000000), ADDR);
+                DID, List.of(), VERSION, Coin.of("uakt", 5000000));
         assertThrows(IllegalArgumentException.class, msg::validateBasic);
     }
 
     @Test
     void createDeploymentBadVersionLengthThrows() {
         var msg = new DeploymentMessages.MsgCreateDeployment(
-                DID, List.of(new byte[]{1}), new byte[16], Coin.of("uakt", 5000000), ADDR);
+                DID, List.of(group()), new byte[16], Coin.of("uakt", 5000000));
         assertThrows(IllegalArgumentException.class, msg::validateBasic);
     }
 
     @Test
     void createDeploymentEmptyVersionThrows() {
         var msg = new DeploymentMessages.MsgCreateDeployment(
-                DID, List.of(new byte[]{1}), new byte[0], Coin.of("uakt", 5000000), ADDR);
+                DID, List.of(group()), new byte[0], Coin.of("uakt", 5000000));
         assertThrows(IllegalArgumentException.class, msg::validateBasic);
     }
 
@@ -75,16 +79,15 @@ class DeploymentMessagesTest {
     }
 
     @Test
-    void depositDeploymentValid() {
-        var msg = new DeploymentMessages.MsgDepositDeployment(DID, Coin.of("uakt", 1000), ADDR);
-        assertDoesNotThrow(msg::validateBasic);
-        assertTrue(msg.getSignBytes().length > 0);
-    }
-
-    @Test
-    void depositDeploymentZeroAmountThrows() {
-        var msg = new DeploymentMessages.MsgDepositDeployment(DID, Coin.of("uakt", 0), ADDR);
-        assertThrows(IllegalArgumentException.class, msg::validateBasic);
+    void createDeploymentEncodesGroupsHashAndBalanceDeposit() throws Exception {
+        var msg = new DeploymentMessages.MsgCreateDeployment(
+                DID, List.of(group()), VERSION, Coin.of("uakt", 5000000));
+        var parsed = akash.deployment.v1beta4.MsgCreateDeployment.parseFrom(msg.getSignBytes());
+        assertEquals("dcloud", parsed.getGroups(0).getName());
+        assertEquals(1, parsed.getHash().byteAt(0));
+        assertEquals("uakt", parsed.getDeposit().getAmount().getDenom());
+        assertEquals("5000000", parsed.getDeposit().getAmount().getAmount());
+        assertEquals(akash.base.deposit.v1.Source.balance, parsed.getDeposit().getSources(0));
     }
 
     @Test

@@ -1,0 +1,123 @@
+syntax = "proto3";
+package akash.deployment.v1beta4;
+option java_package = "akash.deployment.v1beta4";
+option java_multiple_files = true;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "akash/base/deposit/v1/deposit.proto";
+import "akash/base/v1beta1/attribute.proto";
+
+// Wire-compatible with chain-sdk deployment/v1beta4, the version
+// registered by Akash node v2.2 (pkg.akt.dev/go v0.5.0-rc2).
+
+message DeploymentID {
+  string owner = 1;
+  uint64 dseq = 2;
+}
+
+message GroupID {
+  string owner = 1;
+  uint64 dseq = 2;
+  uint32 gseq = 3;
+}
+
+message MsgCreateDeployment {
+  DeploymentID id = 1;
+  repeated GroupSpec groups = 2;
+  bytes hash = 3;
+  akash.base.deposit.v1.Deposit deposit = 4;
+}
+
+message MsgUpdateDeployment {
+  DeploymentID id = 1;
+  bytes hash = 3;
+}
+
+message MsgCloseDeployment {
+  DeploymentID id = 1;
+}
+
+message MsgCloseGroup {
+  GroupID id = 1;
+}
+
+message MsgPauseGroup {
+  GroupID id = 1;
+}
+
+message MsgStartGroup {
+  GroupID id = 1;
+}
+
+message MsgCreateDeploymentResponse {}
+message MsgUpdateDeploymentResponse {}
+message MsgCloseDeploymentResponse {}
+message MsgCloseGroupResponse {}
+message MsgPauseGroupResponse {}
+message MsgStartGroupResponse {}
+
+message GroupSpec {
+  string name = 1;
+  GroupRequirements requirements = 2;
+  repeated ResourceUnit resources = 3;
+}
+
+message GroupRequirements {
+  GroupSignedBy signed_by = 1;
+  repeated akash.base.v1beta1.Attribute attributes = 2;
+}
+
+message GroupSignedBy {
+  repeated string all_of = 1;
+  repeated string any_of = 2;
+}
+
+message ResourceUnit {
+  Resources resource = 1;
+  uint32 count = 2;
+  cosmos.base.v1beta1.DecCoin price = 3;
+}
+
+message Resources {
+  uint32 id = 1;
+  CPU cpu = 2;
+  Memory memory = 3;
+  repeated Storage storage = 4;
+  GPU gpu = 5;
+  repeated Endpoint endpoints = 6;
+}
+
+message ResourceValue {
+  bytes val = 1;
+}
+
+message CPU {
+  ResourceValue units = 1;
+  repeated akash.base.v1beta1.Attribute attributes = 2;
+}
+
+message Memory {
+  ResourceValue quantity = 1;
+  repeated akash.base.v1beta1.Attribute attributes = 2;
+}
+
+message Storage {
+  string name = 1;
+  ResourceValue quantity = 2;
+  repeated akash.base.v1beta1.Attribute attributes = 3;
+}
+
+message GPU {
+  ResourceValue units = 1;
+  repeated akash.base.v1beta1.Attribute attributes = 2;
+}
+
+message Endpoint {
+  enum Kind {
+    SHARED_HTTP = 0;
+    RANDOM_PORT = 1;
+    LEASED_IP = 2;
+  }
+  Kind kind = 1;
+  uint32 sequence_number = 2;
+}

@@ -1,9 +1,13 @@
 syntax = "proto3";
-package akash.market.v1beta4;
-option java_package = "akash.market.v1beta4";
+package akash.market.v1beta5;
+option java_package = "akash.market.v1beta5";
 option java_multiple_files = true;
 
 import "cosmos/base/v1beta1/coin.proto";
+import "akash/base/deposit/v1/deposit.proto";
+
+// Wire-compatible with chain-sdk market/v1 and market/v1beta5.
+// Akash node v2.2 registers these messages, not v1beta4.
 
 message OrderID {
   string owner = 1;
@@ -18,6 +22,7 @@ message BidID {
   uint32 gseq = 3;
   uint32 oseq = 4;
   string provider = 5;
+  uint32 bseq = 6;
 }
 
 message LeaseID {
@@ -26,17 +31,17 @@ message LeaseID {
   uint32 gseq = 3;
   uint32 oseq = 4;
   string provider = 5;
+  uint32 bseq = 6;
 }
 
 message MsgCreateBid {
-  OrderID order = 1;
-  string provider = 2;
-  cosmos.base.v1beta1.DecCoin price = 3;
-  cosmos.base.v1beta1.Coin deposit = 4;
+  BidID id = 1;
+  cosmos.base.v1beta1.DecCoin price = 2;
+  akash.base.deposit.v1.Deposit deposit = 3;
 }
 
 message MsgCloseBid {
-  BidID bid_id = 1;
+  BidID id = 1;
 }
 
 message MsgCreateLease {
@@ -44,11 +49,11 @@ message MsgCreateLease {
 }
 
 message MsgWithdrawLease {
-  LeaseID lease_id = 1;
+  LeaseID id = 1;
 }
 
 message MsgCloseLease {
-  LeaseID lease_id = 1;
+  LeaseID id = 1;
 }
 
 message MsgCreateBidResponse {}

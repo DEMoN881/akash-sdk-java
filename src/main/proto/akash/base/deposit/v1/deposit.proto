@@ -1,0 +1,19 @@
+syntax = "proto3";
+package akash.base.deposit.v1;
+option java_package = "akash.base.deposit.v1";
+option java_multiple_files = true;
+
+import "cosmos/base/v1beta1/coin.proto";
+
+// Field numbers match chain-sdk akash.base.deposit.v1.Deposit.
+// Source.balance is 1. An empty sources list is rejected by the node.
+enum Source {
+  invalid = 0;
+  balance = 1;
+  grant = 2;
+}
+
+message Deposit {
+  cosmos.base.v1beta1.Coin amount = 1;
+  repeated Source sources = 5;
+}

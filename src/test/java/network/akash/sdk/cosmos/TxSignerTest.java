@@ -22,7 +22,7 @@ class TxSignerTest {
         var closeMsg = new DeploymentMessages.MsgCloseDeployment(did);
 
         Any anyMsg = Any.newBuilder()
-                .setTypeUrl("/akash.deployment.v1beta3.MsgCloseDeployment")
+                .setTypeUrl("/akash.deployment.v1beta4.MsgCloseDeployment")
                 .setValue(ByteString.copyFrom(closeMsg.getSignBytes()))
                 .build();
 
@@ -47,7 +47,7 @@ class TxSignerTest {
         var closeMsg = new DeploymentMessages.MsgCloseDeployment(did);
 
         Any anyMsg = Any.newBuilder()
-                .setTypeUrl("/akash.deployment.v1beta3.MsgCloseDeployment")
+                .setTypeUrl("/akash.deployment.v1beta4.MsgCloseDeployment")
                 .setValue(ByteString.copyFrom(closeMsg.getSignBytes()))
                 .build();
 
@@ -65,7 +65,7 @@ class TxSignerTest {
         var closeMsg = new DeploymentMessages.MsgCloseDeployment(did);
 
         Any anyMsg = Any.newBuilder()
-                .setTypeUrl("/akash.deployment.v1beta3.MsgCloseDeployment")
+                .setTypeUrl("/akash.deployment.v1beta4.MsgCloseDeployment")
                 .setValue(ByteString.copyFrom(closeMsg.getSignBytes()))
                 .build();
 
@@ -84,7 +84,7 @@ class TxSignerTest {
         var closeMsg = new DeploymentMessages.MsgCloseDeployment(did);
 
         Any anyMsg = Any.newBuilder()
-                .setTypeUrl("/akash.deployment.v1beta3.MsgCloseDeployment")
+                .setTypeUrl("/akash.deployment.v1beta4.MsgCloseDeployment")
                 .setValue(ByteString.copyFrom(closeMsg.getSignBytes()))
                 .build();
 
@@ -105,10 +105,10 @@ class TxSignerTest {
 
         List<Any> msgs = List.of(
                 Any.newBuilder()
-                        .setTypeUrl("/akash.deployment.v1beta3.MsgCloseDeployment")
+                        .setTypeUrl("/akash.deployment.v1beta4.MsgCloseDeployment")
                         .setValue(ByteString.copyFrom(close1.getSignBytes())).build(),
                 Any.newBuilder()
-                        .setTypeUrl("/akash.deployment.v1beta3.MsgCloseDeployment")
+                        .setTypeUrl("/akash.deployment.v1beta4.MsgCloseDeployment")
                         .setValue(ByteString.copyFrom(close2.getSignBytes())).build()
         );
 

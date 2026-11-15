@@ -1,28 +1,28 @@
 syntax = "proto3";
-package akash.market.v1beta4;
-option java_package = "akash.market.v1beta4";
+package akash.market.v1beta5;
+option java_package = "akash.market.v1beta5";
 option java_multiple_files = true;
 
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "akash/market/v1beta4/marketmsg.proto";
+import "akash/market/v1beta5/marketmsg.proto";
 
 message Order {
   OrderID order_id = 1;
-  string state = 2;
+  int32 state = 2;
   int64 created_at = 3;
 }
 
 message Bid {
-  BidID bid_id = 1;
-  string state = 2;
+  BidID id = 1;
+  int32 state = 2;
   cosmos.base.v1beta1.DecCoin price = 3;
   int64 created_at = 4;
 }
 
 message Lease {
-  LeaseID lease_id = 1;
-  string state = 2;
+  LeaseID id = 1;
+  int32 state = 2;
   cosmos.base.v1beta1.DecCoin price = 3;
   int64 created_at = 4;
 }
@@ -64,13 +64,14 @@ message BidFilters {
   uint32 oseq = 4;
   string provider = 5;
   string state = 6;
+  uint32 bseq = 7;
 }
 message QueryBidsRequest {
   BidFilters filters = 1;
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 message QueryBidsResponse {
-  repeated Bid bids = 1;
+  repeated QueryBidResponse bids = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -94,7 +95,7 @@ message QueryLeasesRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 message QueryLeasesResponse {
-  repeated Lease leases = 1;
+  repeated QueryLeaseResponse leases = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /**
  * Group identifier (owner + dseq + gseq).
- * Port of akash-api/go/node/deployment/v1beta3.GroupID
+ * Port of chain-sdk go/node/deployment/v1.GroupID
  */
 public record GroupID(String owner, long dseq, int gseq) {
 

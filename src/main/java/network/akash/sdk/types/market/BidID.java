@@ -6,10 +6,14 @@ import network.akash.sdk.types.deployment.GroupID;
 import java.util.Objects;
 
 /**
- * Bid identifier (order + provider).
- * Port of akash-api/go/node/market/v1beta4.BidID
+ * Bid identifier (order + provider + bid sequence).
+ * Port of chain-sdk go/node/market/v1.BidID. bseq is 0 until a provider bids again.
  */
-public record BidID(String owner, long dseq, int gseq, int oseq, String provider) {
+public record BidID(String owner, long dseq, int gseq, int oseq, String provider, int bseq) {
+
+    public BidID(String owner, long dseq, int gseq, int oseq, String provider) {
+        this(owner, dseq, gseq, oseq, provider, 0);
+    }
 
     public BidID {
         Objects.requireNonNull(owner, "owner must not be null");
@@ -37,7 +41,7 @@ public record BidID(String owner, long dseq, int gseq, int oseq, String provider
     }
 
     public boolean equals(BidID other) {
-        return orderID().equals(other.orderID()) && provider.equals(other.provider);
+        return orderID().equals(other.orderID()) && provider.equals(other.provider) && bseq == other.bseq;
     }
 
     public void validate() {

@@ -37,7 +37,7 @@ public final class CertMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return akash.cert.v1beta3.MsgCreateCertificate.newBuilder()
+            return akash.cert.v1.MsgCreateCertificate.newBuilder()
                     .setOwner(owner)
                     .setCert(ByteString.copyFrom(cert))
                     .setPubkey(ByteString.copyFrom(pubkey))
@@ -67,9 +67,11 @@ public final class CertMessages {
 
         @Override
         public byte[] getSignBytes() {
-            return akash.cert.v1beta3.MsgRevokeCertificate.newBuilder()
-                    .setOwner(owner)
-                    .setSerial(serial)
+            return akash.cert.v1.MsgRevokeCertificate.newBuilder()
+                    .setId(akash.cert.v1.ID.newBuilder()
+                            .setOwner(owner)
+                            .setSerial(serial)
+                            .build())
                     .build().toByteArray();
         }
     }
