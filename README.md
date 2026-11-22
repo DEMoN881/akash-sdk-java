@@ -22,6 +22,7 @@ cd JAkash-Desktop
 - **gRPC-native queries** — Generated blocking stubs for all Akash and Cosmos modules
 - **REST/LCD fallback** — Works with any Cosmos LCD endpoint out of the box
 - **SDL parser, builder, and deployment encoding** — Build an SDL in Java and turn it into group bytes plus the manifest version
+- **Price estimate** — Monthly USD quote for CPU, memory, and storage, plus the GPU model price list, from the Console API
 - **Manifest submission** — Submit manifests to providers over mTLS
 - **Certificate generation** — X.509 certificates for tenant-provider mTLS
 - **Keyring** — Encrypted file-based (AES-256-GCM) and in-memory key storage
@@ -29,7 +30,7 @@ cd JAkash-Desktop
 
 ## Quick start
 
-`v0.3.6` adds `group_spec` and `created_at` to the deployment `Group` query, so a group response includes its resource spec and creation height. `SdlBuilder` and `SdlDeployment` are unchanged. Describe a container in Java, or open an existing YAML file and change one field. `SdlDeployment.from(sdl)` turns that SDL into the group bytes and the manifest version a deployment transaction needs.
+`v0.3.7` adds `PriceClient`. Ask it what a CPU, memory, and storage shape costs per month, and read GPU model prices from the same API. `SdlBuilder` and `SdlDeployment` are unchanged. Describe a container in Java, or open an existing YAML file and change one field. `SdlDeployment.from(sdl)` turns that SDL into the group bytes and the manifest version a deployment transaction needs.
 
 The builder does not broadcast a transaction or create a deployment. It builds the description. Pass the `Sdl` to `ManifestBuilder.fromSdl` when you need a provider manifest.
 
@@ -48,7 +49,7 @@ Maven:
 <dependency>
     <groupId>com.github.DEMoN881</groupId>
     <artifactId>akash-sdk-java</artifactId>
-    <version>v0.3.6</version>
+    <version>v0.3.7</version>
 </dependency>
 ```
 
@@ -60,11 +61,11 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.DEMoN881:akash-sdk-java:v0.3.6'
+    implementation 'com.github.DEMoN881:akash-sdk-java:v0.3.7'
 }
 ```
 
-JitPack builds a new tag for a few minutes. If `v0.3.6` does not resolve yet, refresh the dependencies.
+JitPack builds a new tag for a few minutes. If `v0.3.7` does not resolve yet, refresh the dependencies.
 
 ### One container
 
@@ -193,6 +194,25 @@ new ManifestClient().submitManifest(providerUrl, dseq, ready.manifestJson(), cer
 ```
 
 `ready.version()` is the hash of `ready.manifestJson()`. The provider PUT must send that same JSON. After the lease is open, the container URL comes back in the provider `uris` array.
+
+## Price
+
+`PriceClient` calls the public Console API. It does not use the chain, a key, or a wallet. CPU is in milli (`1000` = 1 core). Memory and storage are bytes. `akashUsdPerMonth` is a monthly USD estimate, not the bid you will be charged.
+
+```java
+try (PriceClient prices = new PriceClient()) {
+    PriceEstimate quote = prices.estimate(100, 134217728, 134217728);
+    double perMonth = quote.akashUsdPerMonth();
+
+    GpuPrice a100 = prices.gpuPrices().stream()
+            .filter(gpu -> gpu.model().equals("a100"))
+            .findFirst()
+            .orElseThrow();
+    double gpuMedian = a100.median();
+}
+```
+
+GPU is a separate list because the price depends on the model. Add `median()` for the card you want on top of the CPU quote. Up to 10 shapes can go in one `estimate(List)` call.
 
 ## Client
 
@@ -323,6 +343,7 @@ AkashClient
 | `go/node/audit/v1` | `network.akash.sdk.types.audit` | Audit messages |
 | `go/node/cert/v1` | `network.akash.sdk.types.cert` | Certificate messages |
 | — | `network.akash.sdk.sdl` | SDL parser, `SdlBuilder`, and `SdlDeployment` |
+| — | `network.akash.sdk.pricing` | `PriceClient`, monthly USD quotes, and GPU prices |
 | — | `network.akash.sdk.manifest` | Manifest builder & mTLS submission |
 | — | `network.akash.sdk.crypto` | Bech32, AkashKeyPair, CertificateGenerator |
 | — | `network.akash.sdk.keyring` | Encrypted file-based & in-memory keyring |
@@ -342,7 +363,7 @@ Requires **Java 21+**.
 mvn test
 ```
 
-190 tests covering the modules.
+200 tests covering the modules.
 
 ## Dependencies
 
