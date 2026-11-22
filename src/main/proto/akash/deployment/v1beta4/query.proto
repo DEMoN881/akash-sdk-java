@@ -25,6 +25,8 @@ message QueryDeploymentResponse {
 message Group {
   GroupID group_id = 1;
   string state = 2;
+  GroupSpec group_spec = 3;
+  int64 created_at = 4;
 }
 
 message DeploymentFilters {
