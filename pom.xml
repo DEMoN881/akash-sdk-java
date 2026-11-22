@@ -6,7 +6,7 @@
 
     <groupId>network.akash</groupId>
     <artifactId>akash-sdk-java</artifactId>
-    <version>0.3.7</version>
+    <version>0.4.0</version>
     <packaging>jar</packaging>
 
     <name>Akash SDK Java</name>

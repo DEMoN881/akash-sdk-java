@@ -311,6 +311,7 @@ public final class SerialBroadcaster implements TxClient, AutoCloseable {
             case "provider" -> "/akash.provider.v1beta4." + msgName;
             case "audit" -> "/akash.audit.v1." + msgName;
             case "cert" -> "/akash.cert.v1." + msgName;
+            case "bank" -> "/cosmos.bank.v1beta1." + msgName;
             default -> "/" + route + "." + msgName;
         };
     }
