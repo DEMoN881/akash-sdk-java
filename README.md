@@ -29,7 +29,7 @@ cd JAkash-Desktop
 
 ## Quick start
 
-`v0.3.5` adds `SdlBuilder` and `SdlDeployment`. Describe a container in Java, or open an existing YAML file and change one field. `SdlDeployment.from(sdl)` turns that SDL into the group bytes and the manifest version a deployment transaction needs.
+`v0.3.6` adds `group_spec` and `created_at` to the deployment `Group` query, so a group response includes its resource spec and creation height. `SdlBuilder` and `SdlDeployment` are unchanged. Describe a container in Java, or open an existing YAML file and change one field. `SdlDeployment.from(sdl)` turns that SDL into the group bytes and the manifest version a deployment transaction needs.
 
 The builder does not broadcast a transaction or create a deployment. It builds the description. Pass the `Sdl` to `ManifestBuilder.fromSdl` when you need a provider manifest.
 
@@ -48,7 +48,7 @@ Maven:
 <dependency>
     <groupId>com.github.DEMoN881</groupId>
     <artifactId>akash-sdk-java</artifactId>
-    <version>v0.3.5</version>
+    <version>v0.3.6</version>
 </dependency>
 ```
 
@@ -60,11 +60,11 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.DEMoN881:akash-sdk-java:v0.3.5'
+    implementation 'com.github.DEMoN881:akash-sdk-java:v0.3.6'
 }
 ```
 
-JitPack builds a new tag for a few minutes. If `v0.3.5` does not resolve yet, refresh the dependencies.
+JitPack builds a new tag for a few minutes. If `v0.3.6` does not resolve yet, refresh the dependencies.
 
 ### One container
 
